@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Monitor</title>
+<style>
+  :root {
+    --bg: #0c0d10;
+    --bg-elevated: #15171c;
+    --bg-card: #1a1d24;
+    --border: #2a2e38;
+    --border-strong: #3a3f4c;
+    --text: #e8eaed;
+    --text-dim: #9aa0a8;
+    --text-faint: #5f6470;
+    
+    --green: #4ade80;
+    --green-soft: rgba(74, 222, 128, 0.12);
+    --green-border: rgba(74, 222, 128, 0.35);
+    
+    --amber: #fbbf24;
+    --amber-soft: rgba(251, 191, 36, 0.12);
+    --amber-border: rgba(251, 191, 36, 0.35);
+    
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, 0.12);
+    --red-border: rgba(248, 113, 113, 0.35);
+    
+    --neutral: #94a3b8;
+    --accent: #c9a961;
+    
+    --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+  }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px 12px 40px;
+    line-height: 1.5;
+  }
+  
+  .container { max-width: 920px; margin: 0 auto; }
+  
+  /* === HEADER === */
+  header { margin-bottom: 28px; }
+  
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .header-title { flex: 1; min-width: 0; }
+  
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  
+  h1 {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+  
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  
+  .refresh-btn:hover {
+    color: var(--text);
+    border-color: var(--text-faint);
+    background: var(--bg-card);
+  }
+  
+  .refresh-btn.loading {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  
+  .meta-bar {
+    display: flex;
+    gap: 24px;
+    padding: 10px 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  
+  .meta-item { display: flex; gap: 8px; align-items: center; }
+  .meta-label { color: var(--text-faint); }
+  .meta-value { color: var(--text-dim); }
+  
+  /* === VERDICT === */
+  .verdict {
+    margin: 24px 0 32px;
+    padding: 28px 24px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  
+  .verdict-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 14px;
+  }
+  
+  .verdict-value {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    line-height: 1.1;
+  }
+  
+  .verdict-detail {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  
+  .verdict-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  
+  .verdict-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .verdict-stat-num {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 500;
+  }
+  
+  .verdict-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  
+  .verdict.green { border-color: var(--green-border); background: linear-gradient(180deg, var(--green-soft) 0%, var(--bg-elevated) 60%); }
+  .verdict.green .verdict-value { color: var(--green); }
+  
+  .verdict.amber { border-color: var(--amber-border); background: linear-gradient(180deg, var(--amber-soft) 0%, var(--bg-elevated) 60%); }
+  .verdict.amber .verdict-value { color: var(--amber); }
+  
+  .verdict.red { border-color: var(--red-border); background: linear-gradient(180deg, var(--red-soft) 0%, var(--bg-elevated) 60%); }
+  .verdict.red .verdict-value { color: var(--red); }
+  
+  /* === QUOTE === */
+  .quote {
+    margin: 0 0 32px;
+    padding: 14px 18px;
+    border-left: 2px solid var(--accent);
+    background: var(--bg-elevated);
+    border-radius: 0 4px 4px 0;
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+    line-height: 1.6;
+  }
+  
+  /* === SECTIONS === */
+  .section { margin-bottom: 32px; }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .section-title-group { display: flex; align-items: baseline; gap: 10px; }
+  
+  .section-tier {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 1.5px;
+    font-weight: 600;
+  }
+  
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: -0.2px;
+  }
+  
+  .section-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-faint);
+  }
+  
+  .section-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  
+  /* === INDICATOR CARDS === */
+  .indicators {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--neutral);
+    transition: background 0.2s;
+  }
+  
+  .card.green::before { background: var(--green); }
+  .card.amber::before { background: var(--amber); }
+  .card.red::before { background: var(--red); }
+  
+  .card.green { background: linear-gradient(90deg, var(--green-soft) 0%, var(--bg-card) 40%); }
+  .card.amber { background: linear-gradient(90deg, var(--amber-soft) 0%, var(--bg-card) 40%); }
+  .card.red { background: linear-gradient(90deg, var(--red-soft) 0%, var(--bg-card) 40%); }
+  
+  .card-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+  }
+  
+  .card-info { min-width: 0; }
+  
+  .card-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  
+  .card-threshold {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+  
+  .card-status {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+  
+  .card-status .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+    background: var(--neutral);
+  }
+  
+  .card.green .dot { background: var(--green); }
+  .card.amber .dot { background: var(--amber); }
+  .card.red .dot { background: var(--red); }
+  
+  .card-value-block {
+    text-align: right;
+    min-width: 90px;
+  }
+  
+  .card-value {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 3px;
+    letter-spacing: -0.3px;
+  }
+  
+  .card.red .card-value { color: var(--red); }
+  .card.amber .card-value { color: var(--amber); }
+  .card.green .card-value { color: var(--green); }
+  
+  .card-date {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-faint);
+    letter-spacing: 0.5px;
+  }
+  
+  .card.loading .card-value { color: var(--text-faint); }
+  .card.loading .card-status { color: var(--text-faint); font-style: italic; }
+  
+  .card.error {
+    border-color: rgba(248, 113, 113, 0.2);
+  }
+  .card.error .card-value { color: var(--text-faint); font-size: 14px; }
+  .card.error .card-status { color: var(--red); }
+  
+  /* === FOOTER === */
+  footer {
+    margin-top: 36px;
+    padding: 18px 20px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--text-faint);
+    line-height: 1.7;
+  }
+  
+  footer h4 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    margin-top: 12px;
+    font-weight: 600;
+  }
+  
+  footer h4:first-child { margin-top: 0; }
+  
+  footer p { color: var(--text-faint); }
+  
+  /* === RESPONSIVE === */
+  @media (max-width: 600px) {
+    body { padding: 16px 10px 30px; }
+    h1 { font-size: 22px; }
+    .verdict-value { font-size: 26px; }
+    .section-title { font-size: 15px; }
+    .card-row { grid-template-columns: 1fr auto; }
+    .card-value { font-size: 17px; }
+    .header-top { flex-direction: column; align-items: stretch; }
+    .refresh-btn { align-self: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="header-top">
+    <div class="header-title">
+      <div class="eyebrow">Architecture Monitor · v2</div>
+      <h1>Warsh / Bessent Thesis</h1>
+      <div class="subtitle">Sind wir on track für den Super-Cycle?</div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+  <div class="meta-bar">
+    <div class="meta-item"><span class="meta-label">UPDATED</span><span class="meta-value" id="updated">—</span></div>
+    <div class="meta-item"><span class="meta-label">SOURCE</span><span class="meta-value">FRED · CoinGecko</span></div>
+    <div class="meta-item"><span class="meta-label">AUTO</span><span class="meta-value">15min</span></div>
+  </div>
+</header>
+
+<div class="quote">
+  "Long-end Treasury yields above 5.5%, term premium above 1.5%, or real 10Y yields above 2.75% — the architecture fractures regardless of what Warsh does at the Fed."
+</div>
+
+<div class="verdict" id="verdict">
+  <div class="verdict-label">Overall Assessment</div>
+  <div class="verdict-value" id="verdictValue">— Loading —</div>
+  <div class="verdict-detail" id="verdictDetail">Lade alle Indikatoren...</div>
+  <div class="verdict-stats" id="verdictStats" style="display:none;">
+    <div class="verdict-stat"><span class="verdict-stat-num" style="color: var(--green)" id="cntGreen">0</span><span class="verdict-stat-label">On Track</span></div>
+    <div class="verdict-stat"><span class="verdict-stat-num" style="color: var(--amber)" id="cntAmber">0</span><span class="verdict-stat-label">Warning</span></div>
+    <div class="verdict-stat"><span class="verdict-stat-num" style="color: var(--red)" id="cntRed">0</span><span class="verdict-stat-label">Critical</span></div>
+  </div>
+</div>
+
+<!-- TIER 1 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title-group">
+      <span class="section-tier">TIER 1</span>
+      <span class="section-title">Bond Market — Binding Constraint</span>
+    </div>
+    <span class="section-status" id="t1status">—</span>
+  </div>
+  <div class="section-desc">Die drei expliziten Bruchstellen aus dem Text. Wenn diese sustained brechen, bricht die Architektur.</div>
+  <div class="indicators" id="tier1"></div>
+</div>
+
+<!-- TIER 2 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title-group">
+      <span class="section-tier">TIER 2</span>
+      <span class="section-title">Inflation Expectations</span>
+    </div>
+    <span class="section-status" id="t2status">—</span>
+  </div>
+  <div class="section-desc">Sind die marktbasierten Inflations-Erwartungen verankert? Drift signalisiert Credibility-Erosion.</div>
+  <div class="indicators" id="tier2"></div>
+</div>
+
+<!-- TIER 3 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title-group">
+      <span class="section-tier">TIER 3</span>
+      <span class="section-title">Dollar & Foreign Bid</span>
+    </div>
+    <span class="section-status" id="t3status">—</span>
+  </div>
+  <div class="section-desc">Bessent braucht schwächeren Dollar. Starke Dollar-Aufwertung bricht die ausländische Treasury-Nachfrage.</div>
+  <div class="indicators" id="tier3"></div>
+</div>
+
+<!-- TIER 4 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title-group">
+      <span class="section-tier">TIER 4</span>
+      <span class="section-title">Risk Assets — Repression Hedges</span>
+    </div>
+    <span class="section-status" id="t4status">—</span>
+  </div>
+  <div class="section-desc">Gold und Bitcoin pricen Financial Repression. Wenn die Architektur greift, sollten sie compoundieren.</div>
+  <div class="indicators" id="tier4"></div>
+</div>
+
+<!-- TIER 5 -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-title-group">
+      <span class="section-tier">TIER 5</span>
+      <span class="section-title">Substrate Validation</span>
+    </div>
+    <span class="section-status" id="t5status">—</span>
+  </div>
+  <div class="section-desc">Compoundiert AI-Infrastruktur? Wenn nein, fehlt die disinflationäre Stütze für die Greenspan-Logik.</div>
+  <div class="indicators" id="tier5"></div>
+</div>
+
+<footer>
+  <h4>Reading Guide</h4>
+  <p><strong style="color:var(--text-dim)">Tier 1 grün + 2+ Bestätigungen grün</strong> → These on track, Bull Case intakt.<br>
+  <strong style="color:var(--text-dim)">1 Tier-1 rot</strong> → Trigger ausgelöst, Re-Assessment nötig, noch kein Bruch.<br>
+  <strong style="color:var(--text-dim)">2+ Tier-1 rot</strong> → Architecture fracturing, defensive Position einnehmen.</p>
+  
+  <h4>Data Sources</h4>
+  <p>FRED (St. Louis Fed): DGS10, DGS2, DFII10, T5YIE, T10YIE, DTWEXBGS. CoinGecko: BTC, ETH. Yahoo Finance Fallback: Gold, SMH, NDX. Update-Frequenz: täglich EOD (FRED), Live (Crypto).</p>
+  
+  <h4>Methodology Notes</h4>
+  <p>Term Premium nicht direkt verfügbar — Proxy: 10Y minus 2Y Spread (DGS10-DGS2). Real Yield direkt aus DFII10 (TIPS).
+  Schwellenwerte aus Original-Text (Tier 1) und kalibrierten Macro-Ranges (Tier 2-5).</p>
+</footer>
+
+</div>
+
+<script>
+const FRED_KEY = 'b91bfa6a409fd3c9d1f6b266159aca6c';
+const PROXY = 'https://corsproxy.io/?url=';
+
+// === INDICATOR DEFINITIONS ===
+const INDICATORS = {
+  tier1: [
+    {
+      id: 'dgs10', name: '10-Year Treasury Yield', 
+      threshold: 'Trigger: > 5.5% sustained',
+      source: 'fred', series: 'DGS10', unit: '%', decimals: 2,
+      evaluate: (v) => {
+        if (v > 5.5) return { s: 'red', t: 'Critical — Architektur-Trigger ausgelöst' };
+        if (v > 5.0) return { s: 'amber', t: 'Warning — Nähert sich Trigger' };
+        if (v > 4.5) return { s: 'amber', t: 'Elevated — Stress, aber Comfortzone' };
+        return { s: 'green', t: 'Unter Stress-Schwelle' };
+      }
+    },
+    {
+      id: 'term_premium', name: '10Y-2Y Spread (Term Premium Proxy)',
+      threshold: 'Trigger: > 1.5% sustained',
+      source: 'computed', unit: '%', decimals: 2,
+      evaluate: (v) => {
+        if (v > 1.5) return { s: 'red', t: 'Critical — Term Premium Expansion' };
+        if (v > 1.0) return { s: 'amber', t: 'Warning — Curve steepening' };
+        if (v < -0.5) return { s: 'amber', t: 'Inverted — Rezessions-Signal' };
+        return { s: 'green', t: 'Curve unter Stress-Threshold' };
+      }
+    },
+    {
+      id: 'dfii10', name: 'Real 10-Year Yield (TIPS)',
+      threshold: 'Trigger: > 2.75% sustained',
+      source: 'fred', series: 'DFII10', unit: '%', decimals: 2,
+      evaluate: (v) => {
+        if (v > 2.75) return { s: 'red', t: 'Critical — Real Yields zu hoch' };
+        if (v > 2.25) return { s: 'amber', t: 'Warning — Real Yields steigen' };
+        return { s: 'green', t: 'Real Yields akzeptabel' };
+      }
+    }
+  ],
+  tier2: [
+    {
+      id: 't5yie', name: '5-Year Breakeven Inflation',
+      threshold: 'Anchor: 2.0-2.7%',
+      source: 'fred', series: 'T5YIE', unit: '%', decimals: 2,
+      evaluate: (v) => {
+        if (v > 3.0) return { s: 'red', t: 'Unanchored — Credibility-Verlust' };
+        if (v > 2.7) return { s: 'amber', t: 'Drift — Erwartungen lockern' };
+        if (v < 1.8) return { s: 'amber', t: 'Deflations-Risiko' };
+        return { s: 'green', t: 'Inflations-Anker hält' };
+      }
+    },
+    {
+      id: 't10yie', name: '10-Year Breakeven Inflation',
+      threshold: 'Long-term anchor: 2.0-2.5%',
+      source: 'fred', series: 'T10YIE', unit: '%', decimals: 2,
+      evaluate: (v) => {
+        if (v > 2.8) return { s: 'red', t: 'Long-run Erwartungen lösen sich' };
+        if (v > 2.5) return { s: 'amber', t: 'Leichte Aufweichung' };
+        if (v < 1.8) return { s: 'amber', t: 'Niedriger als gewünscht' };
+        return { s: 'green', t: 'Long-run Anker stabil' };
+      }
+    }
+  ],
+  tier3: [
+    {
+      id: 'dxy', name: 'US Dollar Index (Broad)',
+      threshold: 'Architecture needs: trending lower',
+      source: 'fred', series: 'DTWEXBGS', unit: '', decimals: 2,
+      evaluate: (v) => {
+        if (v < 115) return { s: 'green', t: 'Dollar schwach — Foreign Bid attraktiv' };
+        if (v < 125) return { s: 'green', t: 'Dollar im akzeptablen Korridor' };
+        if (v < 135) return { s: 'amber', t: 'Dollar Stärke erschwert Architektur' };
+        return { s: 'red', t: 'Dollar zu stark — Foreign Bid bricht' };
+      }
+    }
+  ],
+  tier4: [
+    {
+      id: 'gold', name: 'Gold (London PM Fix)',
+      threshold: 'Repression hedge: trending higher',
+      source: 'fred', series: 'GOLDPMGBD228NLBM', unit: '$', decimals: 0,
+      evaluate: (v) => {
+        if (v > 3500) return { s: 'green', t: 'Strong — Gold prices Repression' };
+        if (v > 2800) return { s: 'green', t: 'Bull-Trend bestätigt' };
+        if (v > 2200) return { s: 'amber', t: 'Konsolidierung' };
+        return { s: 'red', t: 'Bearish — These widerlegt' };
+      }
+    },
+    {
+      id: 'btc', name: 'Bitcoin',
+      threshold: 'Monetary hedge confirmation',
+      source: 'coingecko', coin: 'bitcoin', unit: '$', decimals: 0,
+      evaluate: (v) => {
+        if (v > 120000) return { s: 'green', t: 'Strong — BTC bestätigt Thesis' };
+        if (v > 80000) return { s: 'green', t: 'Bull-Cycle intakt' };
+        if (v > 50000) return { s: 'amber', t: 'Konsolidierung' };
+        return { s: 'red', t: 'Bear-Phase — These geschwächt' };
+      }
+    }
+  ],
+  tier5: [
+    {
+      id: 'sp500', name: 'S&P 500',
+      threshold: 'Broad market — must compound',
+      source: 'fred', series: 'SP500', unit: '', decimals: 0,
+      evaluate: (v) => {
+        if (v > 6500) return { s: 'green', t: 'Strong — Substrate-Trade intakt' };
+        if (v > 5500) return { s: 'green', t: 'Bull-Markt stabil' };
+        if (v > 4500) return { s: 'amber', t: 'Korrekturphase' };
+        return { s: 'red', t: 'Bear-Markt — Substrate-Story gebrochen' };
+      }
+    },
+    {
+      id: 'nasdaq', name: 'NASDAQ Composite (Tech/AI Proxy)',
+      threshold: 'AI-Capex compounding signal',
+      source: 'fred', series: 'NASDAQCOM', unit: '', decimals: 0,
+      evaluate: (v) => {
+        if (v > 22000) return { s: 'green', t: 'AI-Trade compoundiert stark' };
+        if (v > 18000) return { s: 'green', t: 'Tech-Sektor solide' };
+        if (v > 14000) return { s: 'amber', t: 'Momentum schwächt' };
+        return { s: 'red', t: 'AI/Tech-Story bricht' };
+      }
+    }
+  ]
+};
+
+// === DATA STORE ===
+let cache = {};
+let allResults = [];
+
+// === FETCH FUNCTIONS ===
+async function fetchFRED(seriesId) {
+  const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_KEY}&file_type=json&sort_order=desc&limit=10`;
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(fredUrl));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data.observations || data.observations.length === 0) throw new Error('No observations');
+    
+    // Find first non-"." value (FRED uses "." for missing)
+    for (const obs of data.observations) {
+      if (obs.value !== '.') {
+        return { value: parseFloat(obs.value), date: obs.date };
+      }
+    }
+    throw new Error('All values missing');
+  } catch (e) {
+    console.error(`FRED ${seriesId} failed:`, e);
+    return null;
+  }
+}
+
+async function fetchCoinGecko(coin) {
+  try {
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd&include_last_updated_at=true`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const v = data[coin]?.usd;
+    const t = data[coin]?.last_updated_at;
+    if (v === undefined) throw new Error('No price');
+    return { 
+      value: v, 
+      date: t ? new Date(t * 1000).toISOString().split('T')[0] : 'today' 
+    };
+  } catch (e) {
+    console.error(`CoinGecko ${coin} failed:`, e);
+    return null;
+  }
+}
+
+// === RENDERING ===
+function formatValue(value, ind) {
+  if (value === null || value === undefined) return '—';
+  if (ind.unit === '$') {
+    return '$' + value.toLocaleString('en-US', { 
+      maximumFractionDigits: ind.decimals, 
+      minimumFractionDigits: ind.decimals 
+    });
+  }
+  return value.toFixed(ind.decimals) + (ind.unit || '');
+}
+
+function renderCard(ind, result) {
+  const isLoading = result === undefined;
+  const isError = result === null;
+  const value = result?.value;
+  const date = result?.date;
+  
+  let statusClass = 'loading';
+  let statusText = 'Lade...';
+  let valueText = '—';
+  
+  if (isError) {
+    statusClass = 'error';
+    statusText = '<span class="dot"></span>Daten nicht verfügbar';
+    valueText = 'error';
+  } else if (!isLoading && value !== undefined) {
+    const ev = ind.evaluate(value);
+    statusClass = ev.s;
+    statusText = `<span class="dot"></span>${ev.t}`;
+    valueText = formatValue(value, ind);
+  }
+  
+  return `
+    <div class="card ${statusClass}" data-status="${statusClass}">
+      <div class="card-row">
+        <div class="card-info">
+          <div class="card-name">${ind.name}</div>
+          <div class="card-threshold">${ind.threshold}</div>
+          <div class="card-status">${statusText}</div>
+        </div>
+        <div class="card-value-block">
+          <div class="card-value">${valueText}</div>
+          ${date ? `<div class="card-date">${date}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPlaceholders(tierName, container) {
+  const tier = INDICATORS[tierName];
+  document.getElementById(container).innerHTML = 
+    tier.map(ind => renderCard(ind, undefined)).join('');
+}
+
+async function loadTier(tierName, container) {
+  renderPlaceholders(tierName, container);
+  const tier = INDICATORS[tierName];
+  
+  const results = await Promise.all(tier.map(async (ind) => {
+    let result = null;
+    if (ind.source === 'fred') {
+      result = await fetchFRED(ind.series);
+    } else if (ind.source === 'coingecko') {
+      result = await fetchCoinGecko(ind.coin);
+    } else if (ind.source === 'computed' && ind.id === 'term_premium') {
+      const dgs10 = cache.dgs10 || await fetchFRED('DGS10');
+      const dgs2 = cache.dgs2 || await fetchFRED('DGS2');
+      cache.dgs10 = dgs10; cache.dgs2 = dgs2;
+      if (dgs10 && dgs2) {
+        result = { value: dgs10.value - dgs2.value, date: dgs10.date };
+      }
+    }
+    
+    if (result) cache[ind.id] = result;
+    return { ind, result };
+  }));
+  
+  document.getElementById(container).innerHTML = 
+    results.map(({ ind, result }) => renderCard(ind, result)).join('');
+  
+  // Update section status
+  const counts = { green: 0, amber: 0, red: 0, error: 0 };
+  results.forEach(({ result, ind }) => {
+    if (!result) counts.error++;
+    else {
+      const ev = ind.evaluate(result.value);
+      counts[ev.s]++;
+    }
+  });
+  
+  const sectionStatusEl = document.getElementById(tierName.replace('tier','t') + 'status');
+  if (sectionStatusEl) {
+    if (counts.red > 0) sectionStatusEl.innerHTML = `<span style="color:var(--red)">● ${counts.red} CRITICAL</span>`;
+    else if (counts.amber > 0) sectionStatusEl.innerHTML = `<span style="color:var(--amber)">● ${counts.amber} WARNING</span>`;
+    else if (counts.green > 0) sectionStatusEl.innerHTML = `<span style="color:var(--green)">● ON TRACK</span>`;
+    else sectionStatusEl.innerHTML = `<span style="color:var(--text-faint)">● NO DATA</span>`;
+  }
+  
+  return results;
+}
+
+function calculateVerdict() {
+  let t1Red = 0, t1Amber = 0, t1Green = 0;
+  let confirmGreen = 0, confirmRed = 0;
+  let totalRed = 0, totalAmber = 0, totalGreen = 0;
+  
+  allResults.forEach(({ ind, result }) => {
+    if (!result) return;
+    const ev = ind.evaluate(result.value);
+    
+    if (ev.s === 'red') totalRed++;
+    if (ev.s === 'amber') totalAmber++;
+    if (ev.s === 'green') totalGreen++;
+    
+    const isTier1 = ['dgs10','term_premium','dfii10'].includes(ind.id);
+    if (isTier1) {
+      if (ev.s === 'red') t1Red++;
+      else if (ev.s === 'amber') t1Amber++;
+      else if (ev.s === 'green') t1Green++;
+    } else {
+      if (ev.s === 'green') confirmGreen++;
+      if (ev.s === 'red') confirmRed++;
+    }
+  });
+  
+  document.getElementById('cntGreen').textContent = totalGreen;
+  document.getElementById('cntAmber').textContent = totalAmber;
+  document.getElementById('cntRed').textContent = totalRed;
+  document.getElementById('verdictStats').style.display = 'flex';
+  
+  const verdict = document.getElementById('verdict');
+  const value = document.getElementById('verdictValue');
+  const detail = document.getElementById('verdictDetail');
+  
+  verdict.className = 'verdict';
+  
+  if (t1Red >= 2) {
+    verdict.classList.add('red');
+    value.textContent = 'Architecture Fracturing';
+    detail.textContent = `${t1Red} von 3 Tier-1-Triggern ausgelöst. These in akuter Gefahr — defensive Positionierung erwägen.`;
+  } else if (t1Red === 1) {
+    verdict.classList.add('red');
+    value.textContent = 'Trigger Activated';
+    detail.textContent = `1 Tier-1-Trigger ausgelöst. Re-Assessment nötig, noch kein voller Bruch — auf zweiten Trigger achten.`;
+  } else if (t1Amber >= 2) {
+    verdict.classList.add('amber');
+    value.textContent = 'Stress Building';
+    detail.textContent = `Mehrere Tier-1-Indikatoren nähern sich Triggern. Erhöhte Aufmerksamkeit, kein Handlungsbedarf.`;
+  } else if (t1Amber === 1) {
+    verdict.classList.add('amber');
+    value.textContent = 'Caution';
+    detail.textContent = `Ein Tier-1-Indikator zeigt Warnung. Position halten, beobachten.`;
+  } else if (t1Green >= 2 && confirmGreen >= 3) {
+    verdict.classList.add('green');
+    value.textContent = 'On Track · Bull Case';
+    detail.textContent = `Tier 1 unter Stress-Schwellen. Bestätigungs-Signale aktiv. Architektur funktioniert wie spezifiziert.`;
+  } else if (t1Green >= 2) {
+    verdict.classList.add('green');
+    value.textContent = 'On Track';
+    detail.textContent = `Tier 1 unter Stress-Schwellen. Bestätigungs-Signale gemischt aber kein Bruch.`;
+  } else {
+    verdict.classList.add('amber');
+    value.textContent = 'Incomplete Data';
+    detail.textContent = `Nicht alle Tier-1-Indikatoren konnten geladen werden. Refresh probieren.`;
+  }
+}
+
+async function loadAll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  btn.textContent = '↻ Lädt...';
+  
+  cache = {};
+  allResults = [];
+  
+  document.getElementById('verdictValue').textContent = '— Loading —';
+  document.getElementById('verdictDetail').textContent = 'Lade alle Indikatoren...';
+  document.getElementById('verdictStats').style.display = 'none';
+  document.getElementById('verdict').className = 'verdict';
+  
+  const tiers = ['tier1', 'tier2', 'tier3', 'tier4', 'tier5'];
+  for (const t of tiers) {
+    const results = await loadTier(t, t);
+    allResults = allResults.concat(results);
+  }
+  
+  calculateVerdict();
+  
+  document.getElementById('updated').textContent = 
+    new Date().toLocaleString('de-CH', { dateStyle: 'medium', timeStyle: 'short' });
+  
+  btn.classList.remove('loading');
+  btn.textContent = '↻ Refresh';
+}
+
+// Initial load
+loadAll();
+
+// Auto-refresh every 15 minutes
+setInterval(loadAll, 15 * 60 * 1000);
+</script>
+
+</body>
+</html>
