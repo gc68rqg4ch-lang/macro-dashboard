@@ -1,736 +1,660 @@
 <!DOCTYPE html>
 
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Macro Conviction Dashboard · mk</title>
+<title>Macro SuperCycle Dashboard</title>
 <style>
-  /* =======================================================================
-     MACRO CONVICTION DASHBOARD — Design v5
-     Prinzip: EINE ruhige, dunkle Terminal-Welt. Zwei Farbsysteme, klar getrennt:
-       1) AMPEL (grün/gelb/rot)  — laut, trägt das Urteil, in beiden Dashboards
-          identisch. Das ist die einzige Farbe, die "schreien" darf.
-       2) AKZENT pro Dashboard   — leise, strukturell (Streifen, Rahmen, Linien).
-          D1 = kühles Stahlblau · D2 = warmes Bernstein. Konkurriert NIE mit
-          der Ampel. Hintergrund bleibt in beiden Dashboards gleich.
-     Eine Schriftfamilie, klare typografische Hierarchie. Erklärtexte bewusst
-     transparenter (--text-soft) als Werte und Titel.
-     ======================================================================= */
-
-:root {
-/* — Flächen: eine durchgehende dunkle Terminal-Tiefe — */
-–bg:           #0a0b0e;
-–bg-1:         #101216;   /* erhöhte Fläche (Header, Verdict) */
-–bg-2:         #15181e;   /* Karten */
-–bg-3:         #1c2027;   /* Karten-Innenelemente */
-–line:         #262a33;   /* Standard-Trennlinie */
-–line-soft:    #1d2027;   /* sehr dezente Linie */
-–line-strong:  #363c48;
+  :root {
+    --bg: #0c0d10;
+    --bg-elevated: #15171c;
+    --bg-card: #1a1d24;
+    --border: #2a2e38;
+    --border-strong: #3a3f4c;
+    --text: #e8eaed;
+    --text-dim: #9aa0a8;
+    --text-faint: #5f6470;
 
 ```
-/* --- Text: vier klare Helligkeitsstufen --- */
---text:         #eef0f3;   /* Titel, Werte */
---text-mid:     #aab0ba;   /* Fließtext */
---text-soft:    #6f7682;   /* Erklärungen, bewusst transparenter */
---text-faint:   #4a5059;   /* Labels, Achsen */
+--green: #4ade80;
+--green-soft: rgba(74, 222, 128, 0.12);
+--green-border: rgba(74, 222, 128, 0.35);
 
-/* --- AMPEL: das laute System. Trägt jedes Urteil. --- */
---green:        #3fcf8e;
---green-bg:     rgba(63, 207, 142, 0.10);
---green-edge:   rgba(63, 207, 142, 0.45);
---amber:        #e8b13d;
---amber-bg:     rgba(232, 177, 61, 0.10);
---amber-edge:   rgba(232, 177, 61, 0.45);
---red:          #f0664f;
---red-bg:       rgba(240, 102, 79, 0.10);
---red-edge:     rgba(240, 102, 79, 0.45);
---neutral:      #5a626e;
+--amber: #fbbf24;
+--amber-soft: rgba(251, 191, 36, 0.12);
+--amber-border: rgba(251, 191, 36, 0.35);
 
-/* --- AKZENT pro Dashboard: das leise System --- */
---d1:           #6ba8d6;   /* Dashboard 1 — kühl, ruhig (Dekade) */
---d1-bg:        rgba(107, 168, 214, 0.09);
---d1-edge:      rgba(107, 168, 214, 0.30);
---d2:           #d69a5c;   /* Dashboard 2 — warm (Pfad, Bruchpunkte) */
---d2-bg:        rgba(214, 154, 92, 0.09);
---d2-edge:      rgba(214, 154, 92, 0.30);
+--red: #f87171;
+--red-soft: rgba(248, 113, 113, 0.12);
+--red-border: rgba(248, 113, 113, 0.35);
 
-/* --accent wird je nach aktivem Dashboard umgeschaltet (siehe [data-active]) */
---accent:       var(--d1);
---accent-bg:    var(--d1-bg);
---accent-edge:  var(--d1-edge);
+--neutral: #94a3b8;
+--accent: #c9a961;
 
-/* --- Typografie: EINE Familie, ein Mono-Partner für Zahlen --- */
---font:  'Söhne', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
---mono:  'SF Mono', 'JetBrains Mono', 'Roboto Mono', ui-monospace, 'Menlo', monospace;
-
---radius:    10px;
---radius-sm: 6px;
+--font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+--font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+--font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
 ```
 
 }
 
-/* Akzent-Umschaltung: ein Attribut auf <body> steuert die ganze Welt. */
-body[data-active=“d2”] {
-–accent:      var(–d2);
-–accent-bg:   var(–d2-bg);
-–accent-edge: var(–d2-edge);
-}
-
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+- { margin: 0; padding: 0; box-sizing: border-box; }
 
 html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
 body {
-font-family: var(–font);
+font-family: var(–font-sans);
 background: var(–bg);
 color: var(–text);
-line-height: 1.55;
-padding: 22px 14px 60px;
-/* dezente Vignette — Tiefe ohne Farbe */
-background-image: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,255,255,0.025), transparent 70%);
-background-repeat: no-repeat;
+min-height: 100vh;
+padding: 20px 12px 40px;
+line-height: 1.5;
 }
 
-.wrap { max-width: 880px; margin: 0 auto; }
+.container { max-width: 920px; margin: 0 auto; }
 
-/* ============================ HEADER ================================ */
-.masthead {
+header { margin-bottom: 28px; }
+
+.header-top {
 display: flex;
 justify-content: space-between;
 align-items: flex-start;
-gap: 18px;
-padding-bottom: 18px;
-border-bottom: 1px solid var(–line);
-margin-bottom: 4px;
+gap: 16px;
+margin-bottom: 16px;
 }
-.mast-id { min-width: 0; }
-.kicker {
-font-family: var(–mono);
+
+.header-title { flex: 1; min-width: 0; }
+
+.eyebrow {
+font-family: var(–font-mono);
 font-size: 10px;
-letter-spacing: 2.4px;
+letter-spacing: 2.5px;
 text-transform: uppercase;
 color: var(–accent);
-transition: color 0.35s;
-margin-bottom: 7px;
+margin-bottom: 8px;
+font-weight: 500;
 }
+
 h1 {
-font-size: 23px;
-font-weight: 600;
-letter-spacing: -0.4px;
-line-height: 1.15;
+font-family: var(–font-display);
+font-size: 26px;
+font-weight: 400;
+letter-spacing: -0.3px;
+line-height: 1.2;
+margin-bottom: 6px;
 }
-.mast-sub {
-font-size: 12.5px;
-color: var(–text-soft);
-margin-top: 5px;
-}
-.refresh {
-flex-shrink: 0;
-display: inline-flex;
-align-items: center;
-gap: 7px;
-background: var(–bg-2);
-border: 1px solid var(–line-strong);
-color: var(–text-mid);
-padding: 9px 14px;
-font-family: var(–mono);
-font-size: 11px;
-letter-spacing: 0.4px;
-border-radius: var(–radius-sm);
-cursor: pointer;
-transition: all 0.15s;
-}
-.refresh:hover { color: var(–text); border-color: var(–accent-edge); }
-.refresh.busy { opacity: 0.5; pointer-events: none; }
-.refresh .spin { display: inline-block; }
-.refresh.busy .spin { animation: spin 0.9s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
-.metaline {
-display: flex;
-flex-wrap: wrap;
-gap: 20px;
-font-family: var(–mono);
-font-size: 10.5px;
-color: var(–text-faint);
-margin-top: 14px;
+.subtitle {
+font-size: 13px;
+color: var(–text-dim);
+font-style: italic;
 }
-.metaline b { color: var(–text-soft); font-weight: 400; }
 
-/* ====================== DASHBOARD-UMSCHALTER ========================= */
-/* Großes Segmented Control — die zwei Dashboards sind die wichtigste
-Navigationsentscheidung der Seite, also bekommen sie echtes Gewicht. */
-.switch {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 0;
-background: var(–bg-1);
-border: 1px solid var(–line);
-border-radius: var(–radius);
-padding: 5px;
-margin: 22px 0 8px;
-position: relative;
-}
-.switch-btn {
-position: relative;
-z-index: 2;
+.refresh-btn {
 background: transparent;
-border: none;
-border-radius: var(–radius-sm);
-padding: 13px 18px;
+border: 1px solid var(–border);
+color: var(–text-dim);
+padding: 8px 14px;
+font-family: var(–font-mono);
+font-size: 11px;
+letter-spacing: 1px;
+text-transform: uppercase;
 cursor: pointer;
-text-align: left;
-transition: all 0.25s;
+border-radius: 4px;
+transition: all 0.15s;
+white-space: nowrap;
 }
-.switch-btn .sb-tag {
-font-family: var(–mono);
-font-size: 9px;
-letter-spacing: 1.8px;
+
+.refresh-btn:hover {
+color: var(–text);
+border-color: var(–text-faint);
+background: var(–bg-card);
+}
+
+.refresh-btn.loading {
+pointer-events: none;
+opacity: 0.5;
+}
+
+.meta-bar {
+display: flex;
+gap: 24px;
+padding: 10px 14px;
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+border-radius: 6px;
+font-family: var(–font-mono);
+font-size: 11px;
+flex-wrap: wrap;
+}
+
+.meta-item { display: flex; gap: 8px; align-items: center; }
+.meta-label { color: var(–text-faint); }
+.meta-value { color: var(–text-dim); }
+
+.verdict {
+margin: 24px 0 32px;
+padding: 28px 24px;
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+border-radius: 8px;
+text-align: center;
+transition: all 0.3s;
+}
+
+.verdict-label {
+font-family: var(–font-mono);
+font-size: 10px;
+letter-spacing: 2.5px;
 text-transform: uppercase;
 color: var(–text-faint);
-transition: color 0.25s;
+margin-bottom: 14px;
 }
-.switch-btn .sb-name {
-font-size: 16px;
-font-weight: 600;
-color: var(–text-soft);
-transition: color 0.25s;
-margin-top: 4px;
-letter-spacing: -0.2px;
+
+.verdict-value {
+font-family: var(–font-display);
+font-size: 32px;
+font-weight: 400;
+letter-spacing: -0.5px;
+margin-bottom: 8px;
+line-height: 1.1;
 }
-.switch-btn .sb-sub {
-font-size: 11px;
+
+.verdict-detail {
+font-size: 13px;
+color: var(–text-dim);
+font-style: italic;
+max-width: 580px;
+margin: 0 auto;
+line-height: 1.6;
+}
+
+.verdict-stats {
+display: flex;
+justify-content: center;
+gap: 24px;
+margin-top: 18px;
+padding-top: 18px;
+border-top: 1px solid var(–border);
+flex-wrap: wrap;
+}
+
+.verdict-stat {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 4px;
+}
+
+.verdict-stat-num {
+font-family: var(–font-mono);
+font-size: 18px;
+font-weight: 500;
+}
+
+.verdict-stat-label {
+font-family: var(–font-mono);
+font-size: 9px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
 color: var(–text-faint);
-margin-top: 2px;
 }
-/* aktiver Zustand — je Dashboard die eigene Akzentfarbe */
-.switch-btn[data-for=“d1”].on {
-background: var(–d1-bg);
-box-shadow: inset 0 0 0 1px var(–d1-edge);
-}
-.switch-btn[data-for=“d1”].on .sb-tag  { color: var(–d1); }
-.switch-btn[data-for=“d1”].on .sb-name { color: var(–text); }
 
-.switch-btn[data-for=“d2”].on {
-background: var(–d2-bg);
-box-shadow: inset 0 0 0 1px var(–d2-edge);
-}
-.switch-btn[data-for=“d2”].on .sb-tag  { color: var(–d2); }
-.switch-btn[data-for=“d2”].on .sb-name { color: var(–text); }
+.verdict.green { border-color: var(–green-border); background: linear-gradient(180deg, var(–green-soft) 0%, var(–bg-elevated) 60%); }
+.verdict.green .verdict-value { color: var(–green); }
 
-/* ======================= ARENA-LESEHILFE ============================ */
-.arenas {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 10px;
-margin: 16px 0 24px;
+.verdict.amber { border-color: var(–amber-border); background: linear-gradient(180deg, var(–amber-soft) 0%, var(–bg-elevated) 60%); }
+.verdict.amber .verdict-value { color: var(–amber); }
+
+.verdict.red { border-color: var(–red-border); background: linear-gradient(180deg, var(–red-soft) 0%, var(–bg-elevated) 60%); }
+.verdict.red .verdict-value { color: var(–red); }
+
+.quote {
+margin: 0 0 32px;
+padding: 14px 18px;
+border-left: 2px solid var(–accent);
+background: var(–bg-elevated);
+border-radius: 0 4px 4px 0;
+font-family: var(–font-display);
+font-size: 13px;
+color: var(–text-dim);
+font-style: italic;
+line-height: 1.6;
 }
-.arena {
-border: 1px solid var(–line);
-border-radius: var(–radius-sm);
-padding: 11px 13px;
-background: var(–bg-1);
-}
-.arena-top {
+
+.section { margin-bottom: 32px; }
+
+.section-header {
 display: flex;
 justify-content: space-between;
 align-items: baseline;
-margin-bottom: 5px;
-}
-.arena-name {
-font-family: var(–mono);
-font-size: 9.5px;
-letter-spacing: 1.4px;
-text-transform: uppercase;
-}
-.arena.up   .arena-name { color: var(–green); }
-.arena.down .arena-name { color: var(–amber); }
-.arena-exp {
-font-family: var(–mono);
-font-size: 9px;
-color: var(–text-faint);
-}
-.arena-txt { font-size: 11px; color: var(–text-soft); line-height: 1.5; }
-
-/* ============================ QUOTE ================================= */
-.quote {
-border-left: 2px solid var(–accent);
-padding: 13px 16px;
-margin-bottom: 22px;
-background: linear-gradient(90deg, var(–accent-bg), transparent 80%);
-border-radius: 0 var(–radius-sm) var(–radius-sm) 0;
-font-size: 12.5px;
-font-style: italic;
-color: var(–text-mid);
-line-height: 1.65;
-transition: border-color 0.35s, background 0.35s;
+margin-bottom: 14px;
+padding-bottom: 10px;
+border-bottom: 1px solid var(–border);
 }
 
-/* =========================== VERDICT ================================ */
-.verdict {
-border: 1px solid var(–line);
-border-radius: var(–radius);
-padding: 24px 22px;
-margin-bottom: 26px;
-background: var(–bg-1);
-position: relative;
-overflow: hidden;
-}
-/* Kopfstreifen — neutral, bis ein Urteil vorliegt */
-.verdict::before {
-content: ‘’;
-position: absolute;
-left: 0; right: 0; top: 0;
-height: 3px;
-background: var(–accent);
-opacity: 0.5;
-transition: background 0.3s, opacity 0.3s;
-}
-.verdict.is-green::before { background: var(–green); opacity: 1; }
-.verdict.is-amber::before { background: var(–amber); opacity: 1; }
-.verdict.is-red::before   { background: var(–red);   opacity: 1; }
+.section-title-group { display: flex; align-items: baseline; gap: 10px; }
 
-.verdict-kicker {
-font-family: var(–mono);
-font-size: 9.5px;
-letter-spacing: 2px;
-text-transform: uppercase;
-color: var(–text-faint);
-margin-bottom: 11px;
-}
-.verdict-headline {
-font-size: 25px;
-font-weight: 600;
-letter-spacing: -0.5px;
-line-height: 1.2;
-color: var(–text);
-}
-.verdict.is-green .verdict-headline { color: var(–green); }
-.verdict.is-amber .verdict-headline { color: var(–amber); }
-.verdict.is-red   .verdict-headline { color: var(–red); }
-
-.verdict-body {
-font-size: 12.5px;
-color: var(–text-soft);
-line-height: 1.65;
-margin-top: 8px;
-max-width: 620px;
-}
-.verdict-stats {
-display: flex;
-gap: 10px;
-margin-top: 18px;
-padding-top: 16px;
-border-top: 1px solid var(–line);
-}
-.vstat {
-flex: 1;
-background: var(–bg-2);
-border: 1px solid var(–line);
-border-radius: var(–radius-sm);
-padding: 10px 12px;
-}
-.vstat-num {
-font-family: var(–mono);
-font-size: 20px;
-font-weight: 600;
-line-height: 1;
-}
-.vstat-label {
-font-family: var(–mono);
-font-size: 8.5px;
-letter-spacing: 1px;
-text-transform: uppercase;
-color: var(–text-faint);
-margin-top: 6px;
-}
-
-/* =========================== SECTION ================================ */
-.section { margin-bottom: 26px; }
-.section-head {
-display: flex;
-align-items: baseline;
-gap: 11px;
-padding-bottom: 9px;
-margin-bottom: 5px;
-border-bottom: 1px solid var(–line);
-}
-.section-num {
-font-family: var(–mono);
+.section-tier {
+font-family: var(–font-mono);
 font-size: 10px;
-font-weight: 600;
-letter-spacing: 1.2px;
 color: var(–accent);
-transition: color 0.35s;
-white-space: nowrap;
-}
-.section-name {
-font-size: 15px;
+letter-spacing: 1.5px;
 font-weight: 600;
-letter-spacing: -0.2px;
-flex: 1;
-min-width: 0;
 }
-.section-flag {
-font-family: var(–mono);
-font-size: 9.5px;
-letter-spacing: 0.5px;
-white-space: nowrap;
-}
-.section-desc {
-font-size: 11.5px;
-color: var(–text-soft);
-line-height: 1.55;
-margin: 9px 0 13px;
-}
-.cards { display: flex; flex-direction: column; gap: 9px; }
 
-/* ============================= CARD ================================= */
-.card {
-position: relative;
-background: var(–bg-2);
-border: 1px solid var(–line);
-border-radius: var(–radius-sm);
-padding: 15px 16px 15px 18px;
-overflow: hidden;
-transition: border-color 0.2s;
+.section-title {
+font-family: var(–font-display);
+font-size: 17px;
+font-weight: 400;
+letter-spacing: -0.2px;
 }
-/* Statusstreifen links — die Ampel, kräftig */
+
+.section-status {
+font-family: var(–font-mono);
+font-size: 10px;
+letter-spacing: 1px;
+color: var(–text-faint);
+}
+
+.section-desc {
+font-size: 12px;
+color: var(–text-dim);
+margin-bottom: 14px;
+line-height: 1.5;
+}
+
+.indicators {
+display: grid;
+grid-template-columns: 1fr;
+gap: 10px;
+}
+
+.card {
+background: var(–bg-card);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 14px 16px;
+transition: border-color 0.2s, background 0.2s;
+position: relative;
+overflow: hidden;
+}
+
 .card::before {
 content: ‘’;
 position: absolute;
 left: 0; top: 0; bottom: 0;
 width: 3px;
-background: var(–neutral-strip, #3a404c);
+background: var(–neutral);
+transition: background 0.2s;
 }
-.card.s-green::before { background: var(–green); }
-.card.s-amber::before { background: var(–amber); }
-.card.s-red::before   { background: var(–red); }
-.card.s-observe::before { background: var(–accent); }
-.card.s-error::before { background: var(–line-strong); }
 
-/* sehr dezenter Tönungsverlauf je Status — Ampel bleibt führend */
-.card.s-green { background: linear-gradient(100deg, var(–green-bg), var(–bg-2) 45%); }
-.card.s-amber { background: linear-gradient(100deg, var(–amber-bg), var(–bg-2) 45%); }
-.card.s-red   { background: linear-gradient(100deg, var(–red-bg),   var(–bg-2) 45%); }
+.card.green::before { background: var(–green); }
+.card.amber::before { background: var(–amber); }
+.card.red::before { background: var(–red); }
 
-/* — Kopfzeile der Karte: Name + Wert — */
-.card-top {
-display: flex;
-justify-content: space-between;
-align-items: flex-start;
-gap: 14px;
+.card.green { background: linear-gradient(90deg, var(–green-soft) 0%, var(–bg-card) 40%); }
+.card.amber { background: linear-gradient(90deg, var(–amber-soft) 0%, var(–bg-card) 40%); }
+.card.red { background: linear-gradient(90deg, var(–red-soft) 0%, var(–bg-card) 40%); }
+
+.card-row {
+display: grid;
+grid-template-columns: 1fr auto;
+gap: 16px;
+align-items: center;
 }
-.card-head { min-width: 0; flex: 1; }
-.card-titles { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.card-title {
-font-size: 13.5px;
-font-weight: 600;
+
+.card-info { min-width: 0; }
+
+.card-name {
+font-size: 14px;
+font-weight: 500;
 color: var(–text);
-letter-spacing: -0.1px;
-}
-/* Tags: entsättigt, reine Typografie — konkurrieren nicht mit der Ampel */
-.chip {
-font-family: var(–mono);
-font-size: 8px;
-letter-spacing: 0.8px;
-text-transform: uppercase;
-padding: 2.5px 6px;
-border-radius: 3px;
-border: 1px solid var(–line-strong);
-color: var(–text-faint);
-white-space: nowrap;
-}
-.chip.key { color: var(–accent); border-color: var(–accent-edge); }
-
-/* Wert-Block rechts */
-.card-val {
-text-align: right;
-flex-shrink: 0;
-}
-.val-num {
-font-family: var(–mono);
-font-size: 21px;
-font-weight: 600;
-letter-spacing: -0.5px;
-line-height: 1;
-color: var(–text);
-}
-.card.s-green .val-num { color: var(–green); }
-.card.s-amber .val-num { color: var(–amber); }
-.card.s-red   .val-num { color: var(–red); }
-.val-date {
-font-family: var(–mono);
-font-size: 9px;
-color: var(–text-faint);
-margin-top: 4px;
+margin-bottom: 3px;
 }
 
-/* — Status-/Schwellenzeile — */
-.card-meta { margin-top: 9px; }
-.card-thr {
-font-family: var(–mono);
+.card-threshold {
+font-family: var(–font-mono);
 font-size: 10px;
 color: var(–text-faint);
-letter-spacing: 0.2px;
+margin-bottom: 6px;
+letter-spacing: 0.3px;
 }
+
 .card-status {
-display: flex;
-align-items: center;
-gap: 7px;
-font-size: 11.5px;
-color: var(–text-mid);
-margin-top: 5px;
+font-size: 11px;
+color: var(–text-dim);
+line-height: 1.4;
 }
-.status-dot {
-width: 7px; height: 7px;
+
+.card-status .dot {
+display: inline-block;
+width: 6px;
+height: 6px;
 border-radius: 50%;
-flex-shrink: 0;
+margin-right: 5px;
+vertical-align: middle;
 background: var(–neutral);
 }
-.card.s-green .status-dot { background: var(–green); box-shadow: 0 0 7px var(–green-edge); }
-.card.s-amber .status-dot { background: var(–amber); box-shadow: 0 0 7px var(–amber-edge); }
-.card.s-red   .status-dot { background: var(–red);   box-shadow: 0 0 7px var(–red-edge); }
-.card.s-observe .status-dot { background: var(–accent); }
 
-/* — Richtungszeile (3M / 12M) — */
+.card.green .dot { background: var(–green); }
+.card.amber .dot { background: var(–amber); }
+.card.red .dot { background: var(–red); }
+
+.card-explainer {
+font-size: 11px;
+color: var(–text-faint);
+line-height: 1.5;
+margin-top: 10px;
+padding-top: 10px;
+border-top: 1px solid var(–border);
+font-style: italic;
+}
+
+.card-value-block {
+text-align: right;
+min-width: 90px;
+}
+
+.card-value {
+font-family: var(–font-mono);
+font-size: 20px;
+font-weight: 500;
+color: var(–text);
+line-height: 1.1;
+margin-bottom: 3px;
+letter-spacing: -0.3px;
+}
+
+.card.red .card-value { color: var(–red); }
+.card.amber .card-value { color: var(–amber); }
+.card.green .card-value { color: var(–green); }
+
+.card-date {
+font-family: var(–font-mono);
+font-size: 9px;
+color: var(–text-faint);
+letter-spacing: 0.5px;
+}
+
+.card.loading .card-value { color: var(–text-faint); }
+.card.loading .card-status { color: var(–text-faint); font-style: italic; }
+
+.card.error {
+border-color: rgba(248, 113, 113, 0.2);
+}
+.card.error .card-value { color: var(–text-faint); font-size: 14px; }
+.card.error .card-status { color: var(–red); }
+
+footer {
+margin-top: 36px;
+padding: 18px 20px;
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+border-radius: 6px;
+font-size: 11px;
+color: var(–text-faint);
+line-height: 1.7;
+}
+
+footer h4 {
+font-family: var(–font-mono);
+font-size: 10px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+color: var(–text-dim);
+margin-bottom: 6px;
+margin-top: 12px;
+font-weight: 600;
+}
+
+footer h4:first-child { margin-top: 0; }
+
+footer p { color: var(–text-faint); }
+
+/* ===== ERGÄNZUNGEN v4 — im v3-Stil gehalten ===== */
+
+/* Dezenter Dashboard-Umschalter */
+.switcher {
+display: flex;
+gap: 4px;
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 4px;
+margin: 0 0 24px;
+}
+.switch-tab {
+flex: 1;
+background: transparent;
+border: none;
+border-radius: 4px;
+padding: 10px 14px;
+cursor: pointer;
+text-align: left;
+transition: background 0.18s;
+}
+.switch-tab:hover { background: var(–bg-card); }
+.switch-tab.active { background: var(–bg-card); }
+.switch-tab .st-label {
+font-family: var(–font-mono);
+font-size: 9px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+color: var(–text-faint);
+}
+.switch-tab .st-name {
+font-family: var(–font-display);
+font-size: 15px;
+color: var(–text-dim);
+margin-top: 2px;
+transition: color 0.18s;
+}
+.switch-tab.active .st-name { color: var(–text); }
+.switch-tab.active .st-label { color: var(–accent); }
+.switch-tab .st-sub {
+font-size: 10px;
+color: var(–text-faint);
+margin-top: 1px;
+}
+
+/* Arena-Lesehilfe */
+.arena-bar {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+margin-bottom: 28px;
+}
+.arena {
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 10px 13px;
+}
+.arena-head {
+display: flex;
+justify-content: space-between;
+align-items: baseline;
+margin-bottom: 4px;
+}
+.arena-name {
+font-family: var(–font-mono);
+font-size: 9px;
+letter-spacing: 1.3px;
+text-transform: uppercase;
+}
+.arena.up .arena-name { color: var(–green); }
+.arena.down .arena-name { color: var(–amber); }
+.arena-exp { font-family: var(–font-mono); font-size: 9px; color: var(–text-faint); }
+.arena-txt { font-size: 11px; color: var(–text-dim); line-height: 1.5; }
+
+/* Verdict — neutrale Variante für Dashboard 1 (kein Urteil) */
+.verdict.neutral { border-color: var(–border); }
+.verdict.neutral .verdict-value { color: var(–text); }
+
+/* Karten-Tags */
+.card-tags { display: inline-flex; gap: 5px; margin-left: 7px; vertical-align: middle; }
+.tag {
+font-family: var(–font-mono);
+font-size: 8px;
+letter-spacing: 0.7px;
+text-transform: uppercase;
+padding: 2px 5px;
+border-radius: 3px;
+border: 1px solid var(–border-strong);
+color: var(–text-faint);
+}
+.tag.key { color: var(–accent); border-color: var(–accent); }
+
+/* Beobachtungs-Karte (Dashboard 1) — neutraler Streifen, kein Ampelfarbton */
+.card.observe::before { background: var(–accent); }
+.card.observe .dot { background: var(–accent); }
+
+/* Richtungsanzeige 3M / 12M */
 .card-dir {
 display: flex;
-gap: 14px;
-font-family: var(–mono);
-font-size: 10.5px;
-color: var(–text-soft);
-margin-top: 9px;
+gap: 16px;
+font-family: var(–font-mono);
+font-size: 10px;
+margin-top: 8px;
+color: var(–text-faint);
 }
-.dir-item { display: flex; align-items: center; gap: 4px; }
-.dir-item .ar { font-size: 9px; }
-.dir-item.up   .ar, .dir-item.up   { color: var(–green); }
-.dir-item.down .ar, .dir-item.down { color: var(–red); }
-.dir-item.flat { color: var(–text-faint); }
-.dir-label { color: var(–text-faint); }
+.card-dir .dv.up { color: var(–green); }
+.card-dir .dv.down { color: var(–red); }
+.card-dir .dv.flat { color: var(–text-dim); }
 
-/* — Erläuterung: bewusst transparenter, kleiner — */
-.card-note {
-font-size: 11px;
-color: var(–text-soft);
-line-height: 1.55;
-margin-top: 11px;
-padding-top: 11px;
-border-top: 1px solid var(–line-soft);
-}
-
-/* ========================== SPARKLINE =============================== */
+/* Sparkline */
 .spark {
-margin-top: 11px;
-background: var(–bg-1);
-border: 1px solid var(–line-soft);
-border-radius: var(–radius-sm);
-padding: 9px 11px 7px;
+margin-top: 10px;
+padding-top: 10px;
+border-top: 1px solid var(–border);
 }
 .spark-cap {
 display: flex;
 justify-content: space-between;
-align-items: baseline;
-font-family: var(–mono);
-font-size: 8.5px;
-letter-spacing: 0.4px;
+font-family: var(–font-mono);
+font-size: 9px;
 color: var(–text-faint);
-margin-bottom: 4px;
+margin-bottom: 5px;
 }
-.spark-cap .spark-title {
-text-transform: uppercase;
-letter-spacing: 1px;
-color: var(–text-soft);
-}
-.spark svg { display: block; width: 100%; height: 42px; }
-.spark-fill { opacity: 0.14; stroke: none; }
-.spark-stroke { fill: none; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
-.spark-thr { stroke-width: 1; stroke-dasharray: 3 2.5; opacity: 0.65; }
-.spark-thr-label {
-font-family: var(–mono);
-font-size: 7px;
-fill: var(–red);
-opacity: 0.8;
-}
-.spark-empty {
-font-family: var(–mono);
-font-size: 9.5px;
-color: var(–text-faint);
-font-style: italic;
-padding: 8px 2px;
-text-align: center;
-}
-.spark-explain {
-font-size: 10px;
-color: var(–text-soft);
-line-height: 1.5;
-margin-top: 6px;
-}
+.spark svg { display: block; width: 100%; height: 40px; }
+.spark-fill { opacity: 0.13; stroke: none; }
+.spark-stroke { fill: none; stroke-width: 1.5; stroke-linejoin: round; }
+.spark-thr { stroke-width: 1; stroke-dasharray: 3 2.5; opacity: 0.6; }
+.spark-note { font-size: 10px; color: var(–text-faint); font-style: italic; margin-top: 6px; line-height: 1.5; }
+.spark-empty { font-family: var(–font-mono); font-size: 9.5px; color: var(–text-faint); font-style: italic; padding: 6px 0; }
 
-/* ===================== NACHHALTIGKEITS-PRÜFUNG ====================== */
+/* Nachhaltigkeits-Prüfung (20 Tage) */
 .sustain {
 margin-top: 10px;
-border: 1px solid var(–line-soft);
-border-radius: var(–radius-sm);
-padding: 9px 11px;
-background: var(–bg-1);
+padding: 8px 10px;
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+border-radius: 4px;
 }
 .sustain-cap {
 display: flex;
 justify-content: space-between;
-align-items: baseline;
-font-family: var(–mono);
+font-family: var(–font-mono);
 font-size: 8.5px;
-letter-spacing: 0.9px;
+letter-spacing: 0.8px;
 text-transform: uppercase;
 color: var(–text-faint);
 margin-bottom: 6px;
 }
-.sustain-count { font-size: 10px; letter-spacing: 0; color: var(–text-soft); }
-.sustain-track {
-height: 5px;
-border-radius: 3px;
-background: var(–bg-3);
-overflow: hidden;
-}
-.sustain-bar { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-.sustain.s-amber .sustain-bar { background: var(–amber); }
-.sustain.s-red   .sustain-bar { background: var(–red); }
-.sustain.s-green .sustain-bar { background: var(–text-faint); }
-.sustain-note {
-font-size: 10px;
-color: var(–text-soft);
-line-height: 1.5;
-margin-top: 6px;
-}
+.sustain-track { height: 4px; background: var(–border-strong); border-radius: 2px; overflow: hidden; }
+.sustain-bar { height: 100%; border-radius: 2px; transition: width 0.3s; }
+.sustain.amber .sustain-bar { background: var(–amber); }
+.sustain.red .sustain-bar { background: var(–red); }
+.sustain.green .sustain-bar { background: var(–text-faint); }
+.sustain-note { font-size: 10px; color: var(–text-faint); font-style: italic; margin-top: 6px; line-height: 1.5; }
 
-/* ====================== BEOBACHTUNGS-BLOCK ========================== */
-.observe {
-margin-top: 11px;
-border-top: 1px solid var(–line-soft);
-padding-top: 11px;
+/* Beobachtungs-Block (Dashboard 1) */
+.observe-block {
+margin-top: 10px;
+padding-top: 10px;
+border-top: 1px solid var(–border);
 }
-.observe-cap {
-font-family: var(–mono);
+.observe-q-label {
+font-family: var(–font-mono);
 font-size: 8px;
-letter-spacing: 1.3px;
+letter-spacing: 1.2px;
 text-transform: uppercase;
 color: var(–accent);
-transition: color 0.35s;
 margin-bottom: 4px;
 }
-.observe-q {
-font-size: 11.5px;
-color: var(–text-mid);
-line-height: 1.5;
-}
-.observe-ctx {
-font-size: 10px;
-color: var(–text-soft);
-font-style: italic;
-line-height: 1.5;
-margin-top: 5px;
-}
+.observe-q { font-size: 11px; color: var(–text-dim); line-height: 1.5; }
+.observe-ctx { font-size: 10px; color: var(–text-faint); font-style: italic; line-height: 1.5; margin-top: 5px; }
 
-/* ============================ FOOTER ================================ */
-.legend {
-margin-top: 30px;
-border: 1px solid var(–line);
-border-radius: var(–radius);
-background: var(–bg-1);
-padding: 18px 20px;
-}
-.legend h4 {
-font-family: var(–mono);
-font-size: 9.5px;
-letter-spacing: 1.4px;
-text-transform: uppercase;
-color: var(–accent);
-transition: color 0.35s;
-margin: 16px 0 6px;
-}
-.legend h4:first-child { margin-top: 0; }
-.legend p {
-font-size: 11px;
-color: var(–text-soft);
-line-height: 1.6;
-}
-.legend strong { color: var(–text-mid); font-weight: 600; }
-
-/* =========================== LOADING ================================ */
-.card.is-loading { opacity: 0.55; }
-.card.is-loading .val-num { color: var(–text-faint); }
-
-/* ============================ VIEWS ================================= */
+/* Views */
 .view { display: none; }
-.view.on { display: block; animation: fade 0.3s ease; }
-@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.view.active { display: block; }
 
-/* =========================== RESPONSIVE ============================= */
 @media (max-width: 600px) {
-body { padding: 16px 10px 44px; }
-h1 { font-size: 19px; }
-.masthead { flex-direction: column; }
-.refresh { align-self: flex-start; }
-.verdict-headline { font-size: 20px; }
-.arenas { grid-template-columns: 1fr; }
-.switch-btn { padding: 11px 13px; }
-.switch-btn .sb-name { font-size: 14px; }
-.verdict-stats { flex-wrap: wrap; }
-.vstat { min-width: calc(50% - 5px); }
-.val-num { font-size: 18px; }
+.arena-bar { grid-template-columns: 1fr; }
+.switch-tab .st-name { font-size: 13px; }
+}
+
+@media (max-width: 600px) {
+body { padding: 16px 10px 30px; }
+h1 { font-size: 22px; }
+.verdict-value { font-size: 26px; }
+.section-title { font-size: 15px; }
+.card-row { grid-template-columns: 1fr auto; }
+.card-value { font-size: 17px; }
+.header-top { flex-direction: column; align-items: stretch; }
+.refresh-btn { align-self: flex-end; }
 }
 </style>
 
 </head>
-<body data-active="d1">
-<div class="wrap">
+<body>
+<div class="container">
 
-<header class="masthead">
-  <div class="mast-id">
-    <div class="kicker">Conviction Monitor · v5</div>
-    <h1>Macro Conviction Dashboard</h1>
-    <div class="mast-sub">Zwei Horizonte, zwei Logiken — ein Disziplin-Instrument.</div>
+<header>
+  <div class="header-top">
+    <div class="header-title">
+      <div class="eyebrow">Conviction Monitor · v4</div>
+      <h1>Macro Conviction Dashboard</h1>
+      <div class="subtitle">Zwei Horizonte, zwei Logiken — ein Disziplin-Instrument.</div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">↻ Aktualisieren</button>
   </div>
-  <button class="refresh" id="refreshBtn" onclick="loadAll()">
-    <span class="spin">↻</span><span>Aktualisieren</span>
-  </button>
+  <div class="meta-bar">
+    <div class="meta-item"><span class="meta-label">STAND</span><span class="meta-value" id="updated">—</span></div>
+    <div class="meta-item"><span class="meta-label">QUELLEN</span><span class="meta-value">FRED · CoinGecko · Gold-API</span></div>
+    <div class="meta-item"><span class="meta-label">REFRESH</span><span class="meta-value">manuell</span></div>
+  </div>
 </header>
 
-<div class="metaline">
-  <span>STAND <b id="updated">—</b></span>
-  <span>QUELLEN <b>FRED · CoinGecko · Gold-API</b></span>
-  <span>REFRESH <b>manuell</b></span>
-</div>
+<!-- Dezenter Dashboard-Umschalter -->
 
-<!-- Dashboard-Umschalter -->
-
-<div class="switch">
-  <button class="switch-btn on" data-for="d1" onclick="switchTab('d1')">
-    <div class="sb-tag">Dashboard 1 · Beobachtung</div>
-    <div class="sb-name">Grundthese</div>
-    <div class="sb-sub">Dekaden-Horizont · kein Urteil, nur Faktenlage</div>
+<div class="switcher">
+  <button class="switch-tab active" data-tab="d1" onclick="switchTab('d1')">
+    <div class="st-label">Dashboard 1 · Beobachtung</div>
+    <div class="st-name">Grundthese</div>
+    <div class="st-sub">Dekaden-Horizont · kein Urteil, nur Faktenlage</div>
   </button>
-  <button class="switch-btn" data-for="d2" onclick="switchTab('d2')">
-    <div class="sb-tag">Dashboard 2 · Bruchpunkte</div>
-    <div class="sb-name">Supercycle</div>
-    <div class="sb-sub">1–3 Jahre · scharfe rote Trigger</div>
+  <button class="switch-tab" data-tab="d2" onclick="switchTab('d2')">
+    <div class="st-label">Dashboard 2 · Bruchpunkte</div>
+    <div class="st-name">Supercycle</div>
+    <div class="st-sub">1–3 Jahre · scharfe rote Trigger</div>
   </button>
 </div>
 
 <!-- Arena-Lesehilfe -->
 
-<div class="arenas">
+<div class="arena-bar">
   <div class="arena up">
-    <div class="arena-top">
+    <div class="arena-head">
       <span class="arena-name">Asset-Arena</span>
       <span class="arena-exp">Erwartung: hoch</span>
     </div>
     <div class="arena-txt">Geldmenge entwertet den Nenner — Gold, Bitcoin, Aktien, Immobilien steigen nominal.</div>
   </div>
   <div class="arena down">
-    <div class="arena-top">
+    <div class="arena-head">
       <span class="arena-name">Konsum-Arena</span>
       <span class="arena-exp">Erwartung: gedämpft</span>
     </div>
@@ -738,125 +662,131 @@ h1 { font-size: 19px; }
   </div>
 </div>
 
-<!-- ===================== VIEW: DASHBOARD 1 ===================== -->
+<!-- ===================== DASHBOARD 1 ===================== -->
 
-<div class="view on" id="view-d1">
+<div class="view active" id="view-d1">
 
   <div class="quote">
-    „Fiat erodiert, harte Währungen gewinnen relativ. Eine Dekaden-Richtungsaussage wird
-    nicht an einem Tageswert widerlegt — und nicht an einer Schwelle. Dieses Dashboard
-    fällt deshalb bewusst kein Urteil: Es legt die Faktenlage offen. Die Interpretation
-    ist mein Teil der Arbeit."
+    "Fiat erodiert, harte Währungen gewinnen relativ. Eine Dekaden-Richtungsaussage wird nicht an einem Tageswert widerlegt — und nicht an einer Schwelle. Dieses Dashboard fällt deshalb bewusst kein Urteil: Es legt die Faktenlage offen. Die Interpretation ist mein Teil der Arbeit."
   </div>
 
-  <div class="verdict" id="verdict-d1">
-    <div class="verdict-kicker">Beobachtungslage · Grundthese</div>
-    <div class="verdict-headline" id="verdictValue-d1">— Lädt —</div>
-    <div class="verdict-body" id="verdictDetail-d1">Indikatoren werden geladen…</div>
+  <div class="verdict neutral" id="verdict-d1">
+    <div class="verdict-label">Beobachtungslage · Grundthese</div>
+    <div class="verdict-value" id="verdictValue-d1">— Lädt —</div>
+    <div class="verdict-detail" id="verdictDetail-d1">Indikatoren werden geladen…</div>
     <div class="verdict-stats" id="verdictStats-d1" style="display:none;">
-      <div class="vstat"><div class="vstat-num" style="color:var(--d1)" id="d1-cntGreen">0</div><div class="vstat-label">Werte geladen</div></div>
-      <div class="vstat"><div class="vstat-num" style="color:var(--d1)" id="d1-cntAmber">0</div><div class="vstat-label">mit Richtung</div></div>
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color:var(--accent)" id="d1-cntLoaded">0</span><span class="verdict-stat-label">Werte geladen</span></div>
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color:var(--accent)" id="d1-cntDir">0</span><span class="verdict-stat-label">mit Richtung</span></div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-head">
-      <span class="section-num">EBENE A</span>
-      <span class="section-name">Hard Money — der Anker</span>
-      <span class="section-flag" id="d1-a-status">—</span>
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier">EBENE A</span>
+        <span class="section-title">Hard Money — der Anker</span>
+      </div>
+      <span class="section-status" id="d1-a-status">—</span>
     </div>
     <div class="section-desc">Tragen die harten Assets? Der gewichtigste Test ist der zustandsbasierte BTC/Gold-Test: Schlägt Bitcoin Gold über die Dekade — auch dann, wenn das Makro-Bild bestätigt ist?</div>
-    <div class="cards" id="d1-a"></div>
+    <div class="indicators" id="d1-a"></div>
   </div>
 
   <div class="section">
-    <div class="section-head">
-      <span class="section-num">EBENE B</span>
-      <span class="section-name">Schuldenmathematik — der Treiber</span>
-      <span class="section-flag" id="d1-b-status">—</span>
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier">EBENE B</span>
+        <span class="section-title">Schuldenmathematik — der Treiber</span>
+      </div>
+      <span class="section-status" id="d1-b-status">—</span>
     </div>
     <div class="section-desc">Wächst die Geldmenge weiter, bleiben Realrenditen nicht dauerhaft positiv, zeigt kein großer Block strukturelle fiskalische Disziplin? Drift hier ist Anlass, das monetäre Fundament zu überprüfen.</div>
-    <div class="cards" id="d1-b"></div>
+    <div class="indicators" id="d1-b"></div>
   </div>
 
-  <div class="legend">
+  <footer>
     <h4>Lese-Logik Dashboard 1 — Beobachtung statt Urteil</h4>
-    <p>Dashboard 1 kennt bewusst weder Rot noch Gelb noch Grün. Eine Dekaden-Richtungsaussage lässt sich nicht an einer Schwelle festmachen — jeder Indikator zeigt deshalb nur <strong>Wert, Richtung und Kontext</strong>, kein maschinelles Urteil. Zu jedem Indikator gehört eine Beobachtungsfrage; die Antwort darauf ist der interpretierende Teil der Arbeit und bleibt beim Investor. Ein echter Bruch wäre eine seltene, gewichtige Entscheidung — sie gehört in den Kopf, nicht in eine Ampel.</p>
+    <p>Dashboard 1 kennt bewusst weder Rot noch Gelb noch Grün. Eine Dekaden-Richtungsaussage lässt sich nicht an einer Schwelle festmachen — jeder Indikator zeigt nur <strong style="color:var(--text-dim)">Wert, Richtung und Kontext</strong>, kein maschinelles Urteil. Zu jedem Indikator gehört eine Beobachtungsfrage; die Antwort darauf bleibt beim Investor.</p>
     <h4>BTC/Gold-Test — zustandsbasiert</h4>
-    <p>Der gewichtigste Test der Grundthese ist nur scharf, wenn Bedingung A erfüllt ist: Makro-Bestätigung liegt vor (Aktien und Gold steigen, Geldmenge wächst). Erst dann zählt Bedingung B: Bitcoin schlägt Gold trotzdem nicht. Ein reiner BTC-Kursrückgang ohne erfülltes A ist ausdrücklich kein Signal. Hinweis: Die Gold-Datenquelle liefert keine Zeitreihe — für das BTC/Gold-Verhältnis gibt es daher zunächst nur den Punktwert, keine Sparkline.</p>
+    <p>Der gewichtigste Test der Grundthese ist nur scharf, wenn Bedingung A erfüllt ist: Makro-Bestätigung liegt vor (Aktien und Gold steigen, Geldmenge wächst). Erst dann zählt Bedingung B: Bitcoin schlägt Gold trotzdem nicht. Hinweis: Die Gold-Datenquelle liefert keine Zeitreihe — für das BTC/Gold-Verhältnis gibt es zunächst nur den Punktwert, keine Sparkline.</p>
     <h4>Richtungsanzeige &amp; Sparkline</h4>
-    <p>Die Richtung zeigt die Veränderung gegenüber dem Wert vor rund 3 und 12 Monaten (3M/12M) — der mehrjährige Trend, an dem die Grundthese zu interpretieren ist, nicht das Tagesrauschen. Die Sparkline zeigt den Verlauf; beides wird bei jedem Laden frisch aus der Quelle gezogen. Wo eine Quelle keine Historie hergibt (Gold), wird das offen ausgewiesen statt geschätzt.</p>
-  </div>
+    <p>Die Richtung zeigt die Veränderung gegenüber dem Wert vor rund 3 und 12 Monaten — der mehrjährige Trend, nicht das Tagesrauschen. Beides wird bei jedem Laden frisch aus der Quelle gezogen; wo eine Quelle keine Historie hergibt, wird das offen ausgewiesen.</p>
+  </footer>
 
 </div>
 
-<!-- ===================== VIEW: DASHBOARD 2 ===================== -->
+<!-- ===================== DASHBOARD 2 ===================== -->
 
 <div class="view" id="view-d2">
 
   <div class="quote">
-    „Solange Renditen, Term Premium und Realrenditen in einem tragbaren Korridor bleiben,
-    funktioniert die geordnete Repression. Brechen sie nachhaltig nach oben aus, bricht
-    der geordnete Pfad — unabhängig davon, welche Politik gewollt ist."
+    "Solange Renditen, Term Premium und Realrenditen in einem tragbaren Korridor bleiben, funktioniert die geordnete Repression. Brechen sie nachhaltig nach oben aus, bricht der geordnete Pfad — unabhängig davon, welche Politik gewollt ist."
   </div>
 
   <div class="verdict" id="verdict-d2">
-    <div class="verdict-kicker">Gesamturteil · Supercycle</div>
-    <div class="verdict-headline" id="verdictValue-d2">— Lädt —</div>
-    <div class="verdict-body" id="verdictDetail-d2">Indikatoren werden geladen…</div>
+    <div class="verdict-label">Gesamturteil · Supercycle</div>
+    <div class="verdict-value" id="verdictValue-d2">— Lädt —</div>
+    <div class="verdict-detail" id="verdictDetail-d2">Indikatoren werden geladen…</div>
     <div class="verdict-stats" id="verdictStats-d2" style="display:none;">
-      <div class="vstat"><div class="vstat-num" style="color:var(--green)" id="d2-cntGreen">0</div><div class="vstat-label">Im Korridor</div></div>
-      <div class="vstat"><div class="vstat-num" style="color:var(--amber)" id="d2-cntAmber">0</div><div class="vstat-label">Stress</div></div>
-      <div class="vstat"><div class="vstat-num" style="color:var(--red)" id="d2-cntRed">0</div><div class="vstat-label">Bruchpunkt</div></div>
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color:var(--green)" id="d2-cntGreen">0</span><span class="verdict-stat-label">Im Korridor</span></div>
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color:var(--amber)" id="d2-cntAmber">0</span><span class="verdict-stat-label">Stress</span></div>
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color:var(--red)" id="d2-cntRed">0</span><span class="verdict-stat-label">Bruchpunkt</span></div>
     </div>
   </div>
 
   <div class="section">
-    <div class="section-head">
-      <span class="section-num">BRUCHPUNKT I</span>
-      <span class="section-name">Anleihemarkt — die bindende Restriktion</span>
-      <span class="section-flag" id="d2-i-status">—</span>
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier">BRUCHPUNKT I</span>
+        <span class="section-title">Anleihemarkt — die bindende Restriktion</span>
+      </div>
+      <span class="section-status" id="d2-i-status">—</span>
     </div>
     <div class="section-desc">Die drei expliziten Bruch-Indikatoren. Brechen sie nachhaltig nach oben aus, verläuft der Pfad chaotischer als erwartet — möglicherweise als Stagflations-Schock statt geordneter Repression.</div>
-    <div class="cards" id="d2-i"></div>
+    <div class="indicators" id="d2-i"></div>
   </div>
 
   <div class="section">
-    <div class="section-head">
-      <span class="section-num">ANGELPUNKT</span>
-      <span class="section-name">Repression &amp; Absorption</span>
-      <span class="section-flag" id="d2-ang-status">—</span>
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier">ANGELPUNKT</span>
+        <span class="section-title">Repression &amp; Absorption</span>
+      </div>
+      <span class="section-status" id="d2-ang-status">—</span>
     </div>
     <div class="section-desc">Credibility-Anker, Repressions-Werkzeug und das KI-Substrat. Der schwächere Dollar ist das Werkzeug; die ausländische Treasury-Nachfrage der zentrale Angelpunkt des Szenarios.</div>
-    <div class="cards" id="d2-ang"></div>
+    <div class="indicators" id="d2-ang"></div>
   </div>
 
   <div class="section">
-    <div class="section-head">
-      <span class="section-num">BRUCHPUNKT II</span>
-      <span class="section-name">Bitcoin — kurzfristige Tech-Natur</span>
-      <span class="section-flag" id="d2-ii-status">—</span>
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier">BRUCHPUNKT II</span>
+        <span class="section-title">Bitcoin — kurzfristige Tech-Natur</span>
+      </div>
+      <span class="section-status" id="d2-ii-status">—</span>
     </div>
     <div class="section-desc">Im 1–3-Jahres-Fenster wird Bitcoin wie ein Tech-Asset gehandelt. Es sollte sich nicht stark nach unten vom NASDAQ abkoppeln. Eine Entkopplung von Gold ist hier dagegen normal und erwartet — kein Bruch.</div>
-    <div class="cards" id="d2-ii"></div>
+    <div class="indicators" id="d2-ii"></div>
   </div>
 
-  <div class="legend">
+  <footer>
     <h4>Lese-Logik Dashboard 2 — scharfe Bruchpunkte</h4>
-    <p><strong>Eine Bruchstelle rot</strong> — der Supercycle steht unter Stress, Re-Assessment des 1–3-Jahres-Fensters. Die Grundthese bleibt unberührt.<br>
-    <strong>Zwei oder mehr Bruchstellen rot</strong> — die geordnete Repression ist gefährdet, der Pfad verläuft chaotischer (Stagflations-Szenario). Defensivere Positionierung im Szenario-Fenster.<br>
-    <strong>BTC/NASDAQ rot</strong> — Bitcoin-spezifisches Problem im Szenario-Fenster, das über allgemeine Tech-Schwäche hinausgeht. Anlass, die Bitcoin-Position kurzfristig zu prüfen.</p>
+    <p><strong style="color:var(--text-dim)">Eine Bruchstelle rot</strong> → der Supercycle steht unter Stress, Re-Assessment des 1–3-Jahres-Fensters. Die Grundthese bleibt unberührt.<br>
+    <strong style="color:var(--text-dim)">Zwei oder mehr rot</strong> → die geordnete Repression ist gefährdet, der Pfad verläuft chaotischer (Stagflations-Szenario).<br>
+    <strong style="color:var(--text-dim)">BTC/NASDAQ rot</strong> → Bitcoin-spezifisches Problem, das über allgemeine Tech-Schwäche hinausgeht.</p>
     <h4>Nachhaltigkeits-Prüfung — 20 Handelstage</h4>
-    <p>Bruchpunkte sind als <strong>nachhaltige Überschreitungen</strong> definiert, nicht als Momentanwerte. Ein Indikator wird erst rot, wenn seine Schwelle über 20 aufeinanderfolgende Handelstage gehalten wird. Ist die Schwelle aktuell verletzt, aber noch nicht durchgehend, bleibt der Indikator gelb — mit Zähler „Tag X von 20". Konsequenz: Ein kurzer Spike löst keinen Bruchpunkt aus; das Dashboard reagiert bewusst träge und konservativ. Die gestrichelte Linie in der Sparkline markiert die Bruchschwelle.</p>
+    <p>Bruchpunkte sind als nachhaltige Überschreitungen definiert, nicht als Momentanwerte. Ein Indikator wird erst rot, wenn seine Schwelle über 20 aufeinanderfolgende Handelstage gehalten wird — vorher gelb mit Zähler „Tag X von 20". Ein kurzer Spike löst keinen Bruchpunkt aus.</p>
     <h4>Methodische Hinweise</h4>
-    <p>Term Premium: aktuell Proxy über den 10J–2J-Spread (DGS10–DGS2). Roadmap: echte Decomposition (NY Fed ACM / Kim-Wright). Foreign-Bid / TIC-Daten sind noch nicht angebunden — als offener Roadmap-Punkt markiert. Die Zeitreihen werden bei jedem Laden frisch aus FRED und CoinGecko gezogen; es gibt keine sitzungsübergreifende lokale Speicherung — eine dauerhafte eigene Historie bleibt der Roadmap-Punkt „robustere Datenarchitektur".</p>
-  </div>
+    <p>Term Premium: Proxy über den 10J–2J-Spread (DGS10–DGS2). Roadmap: echte Decomposition (NY Fed ACM). Foreign-Bid / TIC-Daten noch nicht angebunden — als Roadmap-Punkt markiert. Zeitreihen werden bei jedem Laden frisch aus FRED und CoinGecko gezogen.</p>
+  </footer>
 
 </div>
 
 </div>
 
 <script>
+
 /* =========================================================================
    MACRO CONVICTION DASHBOARD v4
    Zwei strikt getrennte Dashboards in einer Datei:
@@ -1193,46 +1123,39 @@ function formatValue(value, ind) {
 /* ------------------------------- RENDERING ------------------------------- */
 const TAG_LABEL = { primary: 'Primär', context: 'Kontext', proxy: 'Proxy', roadmap: 'Roadmap' };
 
-/* Sparkline als Inline-SVG. color faerbt Linie + Flaeche; thresholdLevel
-   zeichnet optional die gestrichelte Bruchschwelle (Dashboard 2).
-   explain: kurze, gedimmte Erlaeuterung unter dem Chart. */
-function sparklineHtml(series, color, thresholdLevel, explain) {
+/* Sparkline als Inline-SVG, im v3-Stil (dezent, gedämpft). */
+function sparklineHtml(series, color, thresholdLevel, note) {
   if (!series || series.length < 2) {
     return `<div class="spark"><div class="spark-empty">○ keine Zeitreihe verfügbar — Datenquelle ohne Historie</div></div>`;
   }
-  const maxPoints = 180;
-  const pts = series.slice(-maxPoints);
-  const W = 300, H = 42, pad = 3;
+  const pts = series.slice(-180);
+  const W = 300, H = 40, pad = 3;
   let lo = Math.min(...pts.map(p => p.value));
   let hi = Math.max(...pts.map(p => p.value));
   if (thresholdLevel != null) { lo = Math.min(lo, thresholdLevel); hi = Math.max(hi, thresholdLevel); }
   const span = (hi - lo) || 1;
   const x = i => pad + (i / (pts.length - 1)) * (W - 2 * pad);
   const y = v => H - pad - ((v - lo) / span) * (H - 2 * pad);
-
   const linePts = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
   const areaPts = `${pad},${H - pad} ${linePts} ${(W - pad)},${H - pad}`;
   let thr = '';
   if (thresholdLevel != null) {
     const ty = y(thresholdLevel).toFixed(1);
-    thr = `<line class="spark-thr" x1="${pad}" y1="${ty}" x2="${W - pad}" y2="${ty}" stroke="var(--red)"/>
-           <text class="spark-thr-label" x="${W - pad}" y="${(parseFloat(ty) - 2.5).toFixed(1)}" text-anchor="end">Bruchschwelle</text>`;
+    thr = `<line class="spark-thr" x1="${pad}" y1="${ty}" x2="${W - pad}" y2="${ty}" stroke="var(--red)"/>`;
   }
   const first = pts[0], last = pts[pts.length - 1];
-  const explainHtml = explain ? `<div class="spark-explain">${explain}</div>` : '';
-
   return `
     <div class="spark">
       <div class="spark-cap">
-        <span class="spark-title">Verlauf</span>
-        <span>${first.date} → ${last.date} · ${pts.length} Punkte</span>
+        <span>Verlauf · ${pts.length} Punkte</span>
+        <span>${first.date} → ${last.date}</span>
       </div>
       <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
         <polygon class="spark-fill" points="${areaPts}" fill="${color}"/>
         <polyline class="spark-stroke" points="${linePts}" stroke="${color}"/>
         ${thr}
       </svg>
-      ${explainHtml}
+      ${note ? `<div class="spark-note">${note}</div>` : ''}
     </div>`;
 }
 
@@ -1242,112 +1165,92 @@ function sustainedHtml(ev) {
   if (!su) return '';
   const pct = Math.min(100, su.streak / su.need * 100);
   let note;
-  if (su.insufficient) {
-    note = 'Reihe noch zu kurz für die volle 20-Tage-Prüfung — bis dahin gilt der Momentanwert.';
-  } else if (su.confirmed) {
-    note = 'Schwelle über 20 Handelstage gehalten — Bruchpunkt bestätigt.';
-  } else if (su.streak > 0) {
-    note = 'Schwelle aktuell verletzt, aber noch nicht nachhaltig — bleibt Gelb bis Tag 20.';
-  } else {
-    note = 'Schwelle aktuell nicht verletzt.';
-  }
+  if (su.insufficient) note = 'Reihe noch zu kurz für die volle 20-Tage-Prüfung — bis dahin gilt der Momentanwert.';
+  else if (su.confirmed) note = 'Schwelle über 20 Handelstage gehalten — Bruchpunkt bestätigt.';
+  else if (su.streak > 0) note = 'Schwelle aktuell verletzt, aber noch nicht nachhaltig — bleibt Gelb bis Tag 20.';
+  else note = 'Schwelle aktuell nicht verletzt.';
   return `
-    <div class="sustain s-${ev.s}">
-      <div class="sustain-cap">
-        <span>Nachhaltigkeits-Prüfung · 20 Handelstage</span>
-        <span class="sustain-count">${su.streak} / ${su.need}</span>
-      </div>
+    <div class="sustain ${ev.s}">
+      <div class="sustain-cap"><span>Nachhaltigkeits-Prüfung · 20 Handelstage</span><span>${su.streak} / ${su.need}</span></div>
       <div class="sustain-track"><div class="sustain-bar" style="width:${pct}%"></div></div>
       <div class="sustain-note">${note}</div>
     </div>`;
 }
 
-/* Richtungsanzeige (3M / 12M) aus der Zeitreihe. */
+/* Richtungsanzeige 3M / 12M aus der Zeitreihe. */
 function directionHtml(result) {
   const s = result && result.series;
   if (!s || s.length < 2) {
-    return `<div class="card-dir"><span class="dir-item flat"><span class="ar">○</span> keine Historie</span></div>`;
+    return `<div class="card-dir"><span>keine Historie</span></div>`;
   }
   const last = s[s.length - 1].value;
-  const lookback = (n) => s.length > n ? s[s.length - 1 - n].value : null;
+  const lookback = n => s.length > n ? s[s.length - 1 - n].value : null;
   const v3 = lookback(63), v12 = lookback(252);
-
   const item = (past, label) => {
-    if (past == null || past === 0) {
-      return `<span class="dir-item flat"><span class="dir-label">${label}</span> —</span>`;
-    }
+    if (past == null || past === 0) return `<span>${label} —</span>`;
     const pct = ((last - past) / Math.abs(past)) * 100;
     const up = pct > 0.05, down = pct < -0.05;
     const cls = up ? 'up' : (down ? 'down' : 'flat');
     const arrow = up ? '▲' : (down ? '▼' : '→');
     const sign = pct > 0 ? '+' : '';
-    return `<span class="dir-item ${cls}"><span class="dir-label">${label}</span> <span class="ar">${arrow}</span> ${sign}${pct.toFixed(1)}%</span>`;
+    return `<span>${label} <span class="dv ${cls}">${arrow} ${sign}${pct.toFixed(1)}%</span></span>`;
   };
   return `<div class="card-dir">${item(v3, '3M')}${item(v12, '12M')}</div>`;
 }
 
-/* gemeinsamer Tag-Renderer */
-function chipsHtml(ind, extra) {
-  const cls = ind.tag === 'primary' ? 'chip key' : 'chip';
-  let html = ind.tag ? `<span class="${cls}">${TAG_LABEL[ind.tag]}</span>` : '';
-  if (extra) html += `<span class="chip">${extra}</span>`;
-  return html;
+function tagsHtml(ind, extra) {
+  const t = [];
+  if (ind.tag) t.push(`<span class="tag ${ind.tag === 'primary' ? 'key' : ''}">${TAG_LABEL[ind.tag]}</span>`);
+  if (extra) t.push(`<span class="tag">${extra}</span>`);
+  return t.length ? `<span class="card-tags">${t.join('')}</span>` : '';
 }
 
-/* ---- Beobachtungs-Karte (Dashboard 1) — kein Urteil, neutraler Akzent ---- */
+/* ---- Beobachtungs-Karte (Dashboard 1) — kein Ampelurteil ---- */
 function renderObserveCard(ind, result) {
   const isLoading = result === undefined;
   const isRoadmap = ind.source === 'roadmap';
   const isError = result === null && !isRoadmap;
 
   let valueText = '—', dirBlock = '', sparkBlock = '';
-
-  if (isRoadmap) {
-    valueText = 'n/a';
-  } else if (isError) {
-    valueText = 'Fehler';
-  } else if (!isLoading && result && result.value != null) {
+  if (isRoadmap) valueText = 'n/a';
+  else if (isError) valueText = 'Fehler';
+  else if (!isLoading && result && result.value != null) {
     valueText = formatValue(result.value, ind);
     dirBlock = directionHtml(result);
-    sparkBlock = sparklineHtml(result.series, 'var(--d1)', null,
+    sparkBlock = sparklineHtml(result.series, 'var(--accent)', null,
       'Mehrjähriger Verlauf zur Einordnung — Grundlage der eigenen Interpretation, kein maschinelles Urteil.');
   }
 
-  const stateClass = isLoading ? 'is-loading s-observe' : (isError ? 's-error' : 's-observe');
-  const dateHtml = (result && result.date) ? `<div class="val-date">${result.date}</div>` : '';
+  const cardClass = isLoading ? 'card observe loading' : (isError ? 'card observe error' : 'card observe');
+  const dateHtml = (result && result.date) ? `<div class="card-date">${result.date}</div>` : '';
   const ob = ind.observation || {};
   const obsBlock = ob.question ? `
-    <div class="observe">
-      <div class="observe-cap">Beobachtungsfrage</div>
+    <div class="observe-block">
+      <div class="observe-q-label">Beobachtungsfrage</div>
       <div class="observe-q">${ob.question}</div>
       ${ob.context ? `<div class="observe-ctx">${ob.context}</div>` : ''}
     </div>` : '';
 
   return `
-    <div class="card ${stateClass}">
-      <div class="card-top">
-        <div class="card-head">
-          <div class="card-titles">
-            <span class="card-title">${ind.name}</span>
-            ${chipsHtml(ind, 'Beobachtung')}
-          </div>
-          <div class="card-meta">
-            <div class="card-thr">${ind.threshold}</div>
-          </div>
+    <div class="${cardClass}">
+      <div class="card-row">
+        <div class="card-info">
+          <div class="card-name">${ind.name}${tagsHtml(ind, 'Beobachtung')}</div>
+          <div class="card-threshold">${ind.threshold}</div>
         </div>
-        <div class="card-val">
-          <div class="val-num">${valueText}</div>
+        <div class="card-value-block">
+          <div class="card-value">${valueText}</div>
           ${dateHtml}
         </div>
       </div>
       ${dirBlock}
       ${sparkBlock}
-      <div class="card-note">${ind.explainer}</div>
+      <div class="card-explainer">${ind.explainer}</div>
       ${obsBlock}
     </div>`;
 }
 
-/* ---- Ampel-Karte (Dashboard 2) — Status grün/gelb/rot ---- */
+/* ---- Ampel-Karte (Dashboard 2) ---- */
 function renderCard(ind, result) {
   if (ind.observe) return renderObserveCard(ind, result);
 
@@ -1355,57 +1258,51 @@ function renderCard(ind, result) {
   const isError = result === null && ind.source !== 'roadmap';
   const isRoadmap = ind.source === 'roadmap';
 
-  let stateClass = 'is-loading', statusText = 'Lädt…', valueText = '—', ev = null;
+  let statusClass = 'loading', statusText = 'Lädt…', valueText = '—', ev = null;
 
   if (isRoadmap) {
     ev = ind.evaluate();
-    stateClass = 's-' + ev.s;
-    statusText = ev.t;
+    statusClass = ev.s;
+    statusText = `<span class="dot"></span>${ev.t}`;
     valueText = 'n/a';
   } else if (isError) {
-    stateClass = 's-error';
-    statusText = 'Daten nicht verfügbar';
+    statusClass = 'error';
+    statusText = '<span class="dot"></span>Daten nicht verfügbar';
     valueText = 'Fehler';
   } else if (!isLoading && result && result.value !== undefined) {
     ev = evaluateSustained(ind, result);
-    stateClass = 's-' + ev.s;
-    statusText = ev.t;
+    statusClass = ev.s;
+    statusText = `<span class="dot"></span>${ev.t}`;
     valueText = formatValue(result.value, ind);
   }
 
-  const dateHtml = (result && result.date) ? `<div class="val-date">${result.date}</div>` : '';
-
+  const dateHtml = (result && result.date) ? `<div class="card-date">${result.date}</div>` : '';
   let sparkBlock = '', sustainBlock = '';
   if (!isLoading && !isRoadmap && result && result.value !== undefined && result !== null) {
     const thr = ind.breakRule ? ind.breakRule.level : null;
-    const explain = thr != null
+    const note = thr != null
       ? 'Gestrichelt: die Bruchschwelle. Rot gilt erst bei 20 Handelstagen nachhaltiger Überschreitung.'
       : 'Mehrjähriger Verlauf zur Einordnung des aktuellen Werts.';
-    sparkBlock = sparklineHtml(result.series, 'var(--d2)', thr, explain);
+    sparkBlock = sparklineHtml(result.series, 'var(--accent)', thr, note);
     sustainBlock = sustainedHtml(ev);
   }
 
   return `
-    <div class="card ${stateClass}">
-      <div class="card-top">
-        <div class="card-head">
-          <div class="card-titles">
-            <span class="card-title">${ind.name}</span>
-            ${chipsHtml(ind, null)}
-          </div>
-          <div class="card-meta">
-            <div class="card-thr">${ind.threshold}</div>
-            <div class="card-status"><span class="status-dot"></span>${statusText}</div>
-          </div>
+    <div class="card ${statusClass}" data-status="${statusClass}">
+      <div class="card-row">
+        <div class="card-info">
+          <div class="card-name">${ind.name}${tagsHtml(ind, null)}</div>
+          <div class="card-threshold">${ind.threshold}</div>
+          <div class="card-status">${statusText}</div>
         </div>
-        <div class="card-val">
-          <div class="val-num">${valueText}</div>
+        <div class="card-value-block">
+          <div class="card-value">${valueText}</div>
           ${dateHtml}
         </div>
       </div>
       ${sparkBlock}
       ${sustainBlock}
-      <div class="card-note">${ind.explainer}</div>
+      <div class="card-explainer">${ind.explainer}</div>
     </div>`;
 }
 
@@ -1607,10 +1504,10 @@ function verdictD1() {
   const det = document.getElementById('verdictDetail-d1');
 
   // Bewusst neutral: 'verdict' ohne green/amber/red-Klasse.
-  v.className = 'verdict';
+  v.className = 'verdict neutral';
   document.getElementById('verdictStats-d1').style.display = 'flex';
-  document.getElementById('d1-cntGreen').textContent = loaded;
-  document.getElementById('d1-cntAmber').textContent = withDir;
+  document.getElementById('d1-cntLoaded').textContent = loaded;
+  document.getElementById('d1-cntDir').textContent = withDir;
 
   val.textContent = 'Beobachtungslage';
   det.textContent = `${loaded} von ${total} Indikatoren mit aktuellem Wert geladen` +
@@ -1657,27 +1554,27 @@ function verdictD2() {
   v.className = 'verdict';
 
   if (breakI >= 2) {
-    v.classList.add('is-red');
+    v.classList.add('red');
     val.textContent = 'Pfad fracturing';
     det.textContent = `${breakI} von 3 Anleihemarkt-Bruchpunkten rot. Die geordnete Repression ist gefährdet — der Pfad verläuft chaotischer (Stagflations-Szenario). Defensivere Positionierung im Szenario-Fenster.`;
   } else if (breakI === 1) {
-    v.classList.add('is-red');
+    v.classList.add('red');
     val.textContent = 'Bruchpunkt aktiviert';
     det.textContent = '1 Anleihemarkt-Bruchpunkt rot. Der Supercycle steht unter Stress — Re-Assessment des 1–3-Jahres-Fensters. Die Grundthese (Dashboard 1) bleibt davon unberührt.';
   } else if (btcNasdaqRed) {
-    v.classList.add('is-red');
+    v.classList.add('red');
     val.textContent = 'BTC/NASDAQ-Abkopplung';
     det.textContent = 'Bitcoin koppelt sich deutlich nach unten vom NASDAQ ab. Warnsignal für ein Bitcoin-spezifisches Problem im Szenario-Fenster, das über allgemeine Tech-Schwäche hinausgeht — Anlass, die Bitcoin-Position kurzfristig zu prüfen.';
   } else if (amber >= 2) {
-    v.classList.add('is-amber');
+    v.classList.add('amber');
     val.textContent = 'Stress baut sich auf';
     det.textContent = 'Mehrere Indikatoren nähern sich ihren Bruchpunkten. Erhöhte Aufmerksamkeit, noch keine Handlung erforderlich.';
   } else if (amber === 1) {
-    v.classList.add('is-amber');
+    v.classList.add('amber');
     val.textContent = 'Beobachten';
     det.textContent = 'Ein Indikator zeigt Stress. Positionen halten, beobachten.';
   } else {
-    v.classList.add('is-green');
+    v.classList.add('green');
     val.textContent = 'Im Korridor · Pfad intakt';
     det.textContent = 'Anleihemarkt-Bruchpunkte im tragbaren Korridor, Bitcoin läuft mit dem NASDAQ. Das Supercycle-Szenario funktioniert wie spezifiziert.';
   }
@@ -1685,14 +1582,10 @@ function verdictD2() {
 
 /* ------------------------- DASHBOARD-UMSCHALTER -------------------------- */
 function switchTab(tab) {
-  // Umschalter-Buttons
-  document.querySelectorAll('.switch-btn').forEach(b =>
-    b.classList.toggle('on', b.dataset.for === tab));
-  // Sichtbare View
+  document.querySelectorAll('.switch-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.view').forEach(v =>
-    v.classList.toggle('on', v.id === 'view-' + tab));
-  // Akzentfarbe der ganzen Seite umschalten (kühl D1 / warm D2)
-  document.body.setAttribute('data-active', tab);
+    v.classList.toggle('active', v.id === 'view-' + tab));
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1708,7 +1601,7 @@ async function loadAll() {
     document.getElementById('verdictValue-' + d).textContent = '— Lädt —';
     document.getElementById('verdictDetail-' + d).textContent = 'Indikatoren werden geladen…';
     document.getElementById('verdictStats-' + d).style.display = 'none';
-    document.getElementById('verdict-' + d).className = 'verdict';
+    document.getElementById('verdict-' + d).className = (d === 'd1' ? 'verdict neutral' : 'verdict');
   });
 
   // Phase 1 — Roh-Werte vorab in den Cache laden, die von berechneten
