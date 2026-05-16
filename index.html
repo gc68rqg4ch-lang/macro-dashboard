@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Macro Conviction Dashboard · mk</title>
+<style>
+  :root {
+    --bg: #0c0d10;
+    --bg-elevated: #15171c;
+    --bg-card: #1a1d24;
+    --border: #2a2e38;
+    --border-strong: #3a3f4c;
+    --text: #e8eaed;
+    --text-dim: #9aa0a8;
+    --text-faint: #5f6470;
+
+```
+--green: #4ade80;
+--green-soft: rgba(74, 222, 128, 0.12);
+--green-border: rgba(74, 222, 128, 0.35);
+
+--amber: #fbbf24;
+--amber-soft: rgba(251, 191, 36, 0.12);
+--amber-border: rgba(251, 191, 36, 0.35);
+
+--red: #f87171;
+--red-soft: rgba(248, 113, 113, 0.12);
+--red-border: rgba(248, 113, 113, 0.35);
+
+--neutral: #94a3b8;
+--accent: #c9a961;
+--accent-soft: rgba(201, 169, 97, 0.10);
+
+/* Dashboard-1 = Dekade / Hard-Money: kühles Blau */
+--d1: #7dd3fc;
+--d1-soft: rgba(125, 211, 252, 0.10);
+/* Dashboard-2 = Supercycle / Pfad: warmes Kupfer */
+--d2: #fb923c;
+--d2-soft: rgba(251, 146, 60, 0.10);
+
+--font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+--font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+--font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+```
+
+}
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+body {
+font-family: var(–font-sans);
+background: var(–bg);
+color: var(–text);
+min-height: 100vh;
+padding: 20px 12px 40px;
+line-height: 1.5;
+}
+
+.container { max-width: 940px; margin: 0 auto; }
+
+/* ––––– Header ––––– */
+header { margin-bottom: 20px; }
+
+.header-top {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+gap: 16px;
+margin-bottom: 16px;
+}
+
+.header-title { flex: 1; min-width: 0; }
+
+.eyebrow {
+font-family: var(–font-mono);
+font-size: 10px;
+letter-spacing: 2.5px;
+text-transform: uppercase;
+color: var(–accent);
+margin-bottom: 8px;
+font-weight: 500;
+}
+
+h1 {
+font-family: var(–font-display);
+font-size: 26px;
+font-weight: 400;
+letter-spacing: -0.3px;
+line-height: 1.2;
+margin-bottom: 6px;
+}
+
+.subtitle {
+font-size: 13px;
+color: var(–text-dim);
+font-style: italic;
+}
+
+.refresh-btn {
+background: transparent;
+border: 1px solid var(–border);
+color: var(–text-dim);
+padding: 8px 14px;
+font-family: var(–font-mono);
+font-size: 11px;
+letter-spacing: 1px;
+text-transform: uppercase;
+cursor: pointer;
+border-radius: 4px;
+transition: all 0.15s;
+white-space: nowrap;
+}
+.refresh-btn:hover { color: var(–text); border-color: var(–text-faint); background: var(–bg-card); }
+.refresh-btn.loading { pointer-events: none; opacity: 0.5; }
+
+.meta-bar {
+display: flex;
+gap: 24px;
+padding: 10px 14px;
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+border-radius: 6px;
+font-family: var(–font-mono);
+font-size: 11px;
+flex-wrap: wrap;
+}
+.meta-item { display: flex; gap: 8px; align-items: center; }
+.meta-label { color: var(–text-faint); }
+.meta-value { color: var(–text-dim); }
+
+/* ––––– Tab-Umschalter ––––– */
+.tabs {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+margin: 20px 0 8px;
+}
+
+.tab {
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 14px 16px;
+cursor: pointer;
+transition: all 0.18s;
+text-align: left;
+}
+.tab:hover { border-color: var(–border-strong); }
+
+.tab-eyebrow {
+font-family: var(–font-mono);
+font-size: 9px;
+letter-spacing: 1.8px;
+text-transform: uppercase;
+color: var(–text-faint);
+margin-bottom: 5px;
+}
+.tab-name {
+font-family: var(–font-display);
+font-size: 16px;
+font-weight: 400;
+margin-bottom: 3px;
+}
+.tab-horizon {
+font-family: var(–font-mono);
+font-size: 10px;
+color: var(–text-faint);
+}
+
+.tab[data-tab=“d1”].active {
+border-color: var(–d1);
+background: linear-gradient(160deg, var(–d1-soft) 0%, var(–bg-elevated) 70%);
+}
+.tab[data-tab=“d1”].active .tab-name { color: var(–d1); }
+.tab[data-tab=“d2”].active {
+border-color: var(–d2);
+background: linear-gradient(160deg, var(–d2-soft) 0%, var(–bg-elevated) 70%);
+}
+.tab[data-tab=“d2”].active .tab-name { color: var(–d2); }
+
+/* ––––– Arena-Lesehilfe ––––– */
+.arena-bar {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+margin: 14px 0 20px;
+}
+.arena {
+padding: 9px 13px;
+border: 1px solid var(–border);
+border-radius: 6px;
+background: var(–bg-elevated);
+font-size: 11px;
+color: var(–text-dim);
+line-height: 1.45;
+}
+.arena-label {
+font-family: var(–font-mono);
+font-size: 9px;
+letter-spacing: 1.3px;
+text-transform: uppercase;
+margin-bottom: 3px;
+display: flex;
+justify-content: space-between;
+}
+.arena.asset .arena-label { color: var(–green); }
+.arena.consum .arena-label { color: var(–amber); }
+.arena-expect { color: var(–text-faint); }
+
+/* ––––– Quote ––––– */
+.quote {
+margin: 0 0 24px;
+padding: 14px 18px;
+border-left: 2px solid var(–accent);
+background: var(–bg-elevated);
+border-radius: 0 4px 4px 0;
+font-family: var(–font-display);
+font-size: 13px;
+color: var(–text-dim);
+font-style: italic;
+line-height: 1.6;
+}
+
+/* ––––– Verdict ––––– */
+.verdict {
+margin: 0 0 28px;
+padding: 26px 24px;
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+border-radius: 8px;
+text-align: center;
+transition: all 0.3s;
+}
+.verdict-label {
+font-family: var(–font-mono);
+font-size: 10px;
+letter-spacing: 2.5px;
+text-transform: uppercase;
+color: var(–text-faint);
+margin-bottom: 12px;
+}
+.verdict-value {
+font-family: var(–font-display);
+font-size: 30px;
+font-weight: 400;
+letter-spacing: -0.5px;
+margin-bottom: 8px;
+line-height: 1.15;
+}
+.verdict-detail {
+font-size: 13px;
+color: var(–text-dim);
+font-style: italic;
+max-width: 600px;
+margin: 0 auto;
+line-height: 1.6;
+}
+.verdict-stats {
+display: flex;
+justify-content: center;
+gap: 24px;
+margin-top: 18px;
+padding-top: 18px;
+border-top: 1px solid var(–border);
+flex-wrap: wrap;
+}
+.verdict-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.verdict-stat-num { font-family: var(–font-mono); font-size: 18px; font-weight: 500; }
+.verdict-stat-label {
+font-family: var(–font-mono);
+font-size: 9px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+color: var(–text-faint);
+}
+
+.verdict.green { border-color: var(–green-border); background: linear-gradient(180deg, var(–green-soft) 0%, var(–bg-elevated) 60%); }
+.verdict.green .verdict-value { color: var(–green); }
+.verdict.amber { border-color: var(–amber-border); background: linear-gradient(180deg, var(–amber-soft) 0%, var(–bg-elevated) 60%); }
+.verdict.amber .verdict-value { color: var(–amber); }
+.verdict.red { border-color: var(–red-border); background: linear-gradient(180deg, var(–red-soft) 0%, var(–bg-elevated) 60%); }
+.verdict.red .verdict-value { color: var(–red); }
+
+/* ––––– Sections ––––– */
+.section { margin-bottom: 28px; }
+
+.section-header {
+display: flex;
+justify-content: space-between;
+align-items: baseline;
+margin-bottom: 6px;
+padding-bottom: 10px;
+border-bottom: 1px solid var(–border);
+}
+.section-title-group { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.section-tier {
+font-family: var(–font-mono);
+font-size: 10px;
+letter-spacing: 1.5px;
+font-weight: 600;
+}
+.section-tier.d1 { color: var(–d1); }
+.section-tier.d2 { color: var(–d2); }
+.section-title {
+font-family: var(–font-display);
+font-size: 17px;
+font-weight: 400;
+letter-spacing: -0.2px;
+}
+.section-status {
+font-family: var(–font-mono);
+font-size: 10px;
+letter-spacing: 1px;
+color: var(–text-faint);
+}
+.section-desc {
+font-size: 12px;
+color: var(–text-dim);
+margin: 10px 0 14px;
+line-height: 1.55;
+}
+
+.indicators { display: grid; grid-template-columns: 1fr; gap: 10px; }
+
+/* ––––– Card ––––– */
+.card {
+background: var(–bg-card);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 14px 16px;
+transition: border-color 0.2s, background 0.2s;
+position: relative;
+overflow: hidden;
+}
+.card::before {
+content: ‘’;
+position: absolute;
+left: 0; top: 0; bottom: 0;
+width: 3px;
+background: var(–neutral);
+transition: background 0.2s;
+}
+.card.green::before { background: var(–green); }
+.card.amber::before { background: var(–amber); }
+.card.red::before { background: var(–red); }
+.card.green { background: linear-gradient(90deg, var(–green-soft) 0%, var(–bg-card) 40%); }
+.card.amber { background: linear-gradient(90deg, var(–amber-soft) 0%, var(–bg-card) 40%); }
+.card.red { background: linear-gradient(90deg, var(–red-soft) 0%, var(–bg-card) 40%); }
+
+.card-row { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; }
+.card-info { min-width: 0; }
+
+.card-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 3px; }
+.card-name { font-size: 14px; font-weight: 500; color: var(–text); }
+
+.card-tag {
+font-family: var(–font-mono);
+font-size: 8px;
+letter-spacing: 0.8px;
+text-transform: uppercase;
+padding: 2px 6px;
+border-radius: 3px;
+border: 1px solid var(–border-strong);
+color: var(–text-faint);
+}
+.card-tag.primary { color: var(–accent); border-color: var(–accent); }
+.card-tag.proxy { color: var(–text-faint); }
+
+.card-threshold {
+font-family: var(–font-mono);
+font-size: 10px;
+color: var(–text-faint);
+margin-bottom: 6px;
+letter-spacing: 0.3px;
+}
+.card-status { font-size: 11px; color: var(–text-dim); line-height: 1.4; }
+.card-status .dot {
+display: inline-block;
+width: 6px; height: 6px;
+border-radius: 50%;
+margin-right: 5px;
+vertical-align: middle;
+background: var(–neutral);
+}
+.card.green .dot { background: var(–green); }
+.card.amber .dot { background: var(–amber); }
+.card.red .dot { background: var(–red); }
+
+/* ––––– Beobachtungs-Karte (Dashboard 1, Variante A) –––––
+Kein Urteil, keine Ampelfarbe. Neutraler Marker + Richtungspfeil.
+Linke Kante in D1-Blau statt Ampelgruen/-gelb/-rot. */
+.card.observe::before { background: var(–d1); }
+.card.observe { background: linear-gradient(90deg, var(–d1-soft) 0%, var(–bg-card) 45%); }
+.card.observe .dot { background: var(–d1); }
+.card.observe .card-value { color: var(–text); }
+
+.card-direction {
+font-family: var(–font-mono);
+font-size: 11px;
+margin-top: 4px;
+color: var(–text-faint);
+letter-spacing: 0.3px;
+}
+.card-direction .arrow { font-weight: 600; }
+.card-direction .up { color: var(–green); }
+.card-direction .down { color: var(–red); }
+.card-direction .flat { color: var(–text-dim); }
+
+.observe-block {
+margin-top: 10px;
+padding-top: 10px;
+border-top: 1px solid var(–border);
+}
+.observe-question {
+font-size: 11px;
+color: var(–text-dim);
+line-height: 1.5;
+margin-bottom: 6px;
+}
+.observe-question::before {
+content: ‘BEOBACHTUNGSFRAGE’;
+display: block;
+font-family: var(–font-mono);
+font-size: 8px;
+letter-spacing: 1.2px;
+color: var(–d1);
+margin-bottom: 3px;
+}
+.observe-context {
+font-size: 10px;
+color: var(–text-faint);
+line-height: 1.5;
+font-style: italic;
+}
+
+/* ––––– Sparkline ––––– */
+.sparkline {
+margin-top: 10px;
+padding-top: 10px;
+border-top: 1px solid var(–border);
+}
+.sparkline-head {
+display: flex;
+justify-content: space-between;
+font-family: var(–font-mono);
+font-size: 9px;
+letter-spacing: 0.5px;
+color: var(–text-faint);
+margin-bottom: 5px;
+}
+.sparkline svg { display: block; width: 100%; height: 38px; }
+.spark-line { fill: none; stroke-width: 1.5; }
+.spark-area { stroke: none; opacity: 0.12; }
+.spark-threshold { stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.6; }
+.spark-empty {
+font-family: var(–font-mono);
+font-size: 10px;
+color: var(–text-faint);
+font-style: italic;
+padding: 6px 0;
+}
+
+/* ––––– Sustained-Fortschritt (20-Tage-Regel) ––––– */
+.sustained {
+margin-top: 9px;
+padding: 7px 10px;
+border-radius: 4px;
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+}
+.sustained-label {
+font-family: var(–font-mono);
+font-size: 8.5px;
+letter-spacing: 1px;
+text-transform: uppercase;
+color: var(–text-faint);
+margin-bottom: 5px;
+display: flex;
+justify-content: space-between;
+}
+.sustained-track {
+height: 4px;
+border-radius: 2px;
+background: var(–border-strong);
+overflow: hidden;
+}
+.sustained-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+.sustained.amber .sustained-fill { background: var(–amber); }
+.sustained.red .sustained-fill { background: var(–red); }
+.sustained.green .sustained-fill { background: var(–text-faint); }
+.sustained-note {
+font-size: 10px;
+color: var(–text-faint);
+margin-top: 5px;
+font-style: italic;
+}
+
+.card-explainer {
+font-size: 11px;
+color: var(–text-faint);
+line-height: 1.5;
+margin-top: 10px;
+padding-top: 10px;
+border-top: 1px solid var(–border);
+font-style: italic;
+}
+
+.card-value-block { text-align: right; min-width: 96px; }
+.card-value {
+font-family: var(–font-mono);
+font-size: 20px;
+font-weight: 500;
+color: var(–text);
+line-height: 1.1;
+margin-bottom: 3px;
+letter-spacing: -0.3px;
+}
+.card.red .card-value { color: var(–red); }
+.card.amber .card-value { color: var(–amber); }
+.card.green .card-value { color: var(–green); }
+.card-date { font-family: var(–font-mono); font-size: 9px; color: var(–text-faint); letter-spacing: 0.5px; }
+
+.card.loading .card-value { color: var(–text-faint); }
+.card.loading .card-status { color: var(–text-faint); font-style: italic; }
+.card.error { border-color: rgba(248, 113, 113, 0.2); }
+.card.error .card-value { color: var(–text-faint); font-size: 14px; }
+.card.error .card-status { color: var(–red); }
+
+/* ––––– Footer ––––– */
+footer {
+margin-top: 32px;
+padding: 18px 20px;
+background: var(–bg-elevated);
+border: 1px solid var(–border);
+border-radius: 6px;
+font-size: 11px;
+color: var(–text-faint);
+line-height: 1.7;
+}
+footer h4 {
+font-family: var(–font-mono);
+font-size: 10px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+color: var(–text-dim);
+margin: 12px 0 6px;
+font-weight: 600;
+}
+footer h4:first-child { margin-top: 0; }
+footer p { color: var(–text-faint); }
+
+.view { display: none; }
+.view.active { display: block; }
+
+@media (max-width: 600px) {
+body { padding: 16px 10px 30px; }
+h1 { font-size: 22px; }
+.verdict-value { font-size: 24px; }
+.section-title { font-size: 15px; }
+.card-value { font-size: 17px; }
+.header-top { flex-direction: column; align-items: stretch; }
+.refresh-btn { align-self: flex-end; }
+.arena-bar { grid-template-columns: 1fr; }
+}
+</style>
+
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="header-top">
+    <div class="header-title">
+      <div class="eyebrow">Conviction Monitor · v4</div>
+      <h1>Macro Conviction Dashboard</h1>
+      <div class="subtitle">Zwei Horizonte, zwei Logiken — ein Disziplin-Instrument.</div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">↻ Aktualisieren</button>
+  </div>
+  <div class="meta-bar">
+    <div class="meta-item"><span class="meta-label">STAND</span><span class="meta-value" id="updated">—</span></div>
+    <div class="meta-item"><span class="meta-label">QUELLEN</span><span class="meta-value">FRED · CoinGecko · Gold-API</span></div>
+    <div class="meta-item"><span class="meta-label">REFRESH</span><span class="meta-value">manuell</span></div>
+  </div>
+</header>
+
+<!-- Tab-Umschalter -->
+
+<div class="tabs">
+  <button class="tab active" data-tab="d1" onclick="switchTab('d1')">
+    <div class="tab-eyebrow">Dashboard 1 · Beobachtung</div>
+    <div class="tab-name">Grundthese</div>
+    <div class="tab-horizon">Dekaden-Horizont · kein Urteil, nur Faktenlage</div>
+  </button>
+  <button class="tab" data-tab="d2" onclick="switchTab('d2')">
+    <div class="tab-eyebrow">Dashboard 2 · Bruchpunkte</div>
+    <div class="tab-name">Supercycle</div>
+    <div class="tab-horizon">1–3 Jahre · scharfe rote Trigger</div>
+  </button>
+</div>
+
+<!-- Arena-Lesehilfe (gilt für beide Dashboards) -->
+
+<div class="arena-bar">
+  <div class="arena asset">
+    <div class="arena-label"><span>Asset-Arena</span><span class="arena-expect">Erwartung: hoch</span></div>
+    Geldmenge entwertet den Nenner — Gold, Bitcoin, Aktien, Immobilien steigen nominal.
+  </div>
+  <div class="arena consum">
+    <div class="arena-label"><span>Konsum-Arena</span><span class="arena-expect">Erwartung: gedämpft</span></div>
+    Produktivität drückt die in Fiat gemessenen Preise — CPI/PPI steigen gedämpft.
+  </div>
+</div>
+
+<!-- ===================== VIEW: DASHBOARD 1 ===================== -->
+
+<div class="view active" id="view-d1">
+
+  <div class="quote">
+    "Fiat erodiert, harte Währungen gewinnen relativ. Eine Dekaden-Richtungsaussage wird
+    nicht an einem Tageswert widerlegt — und nicht an einer Schwelle. Dieses Dashboard
+    fällt deshalb bewusst kein Urteil: Es legt die Faktenlage offen. Die Interpretation
+    ist mein Teil der Arbeit."
+  </div>
+
+  <div class="verdict" id="verdict-d1">
+    <div class="verdict-label">Beobachtungslage · Grundthese</div>
+    <div class="verdict-value" id="verdictValue-d1">— Lädt —</div>
+    <div class="verdict-detail" id="verdictDetail-d1">Indikatoren werden geladen…</div>
+    <div class="verdict-stats" id="verdictStats-d1" style="display:none;">
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color:var(--d1)" id="d1-cntGreen">0</span><span class="verdict-stat-label">Werte geladen</span></div>
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color:var(--d1)" id="d1-cntAmber">0</span><span class="verdict-stat-label">mit Richtung</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier d1">EBENE A</span>
+        <span class="section-title">Hard Money — der Anker</span>
+      </div>
+      <span class="section-status" id="d1-a-status">—</span>
+    </div>
+    <div class="section-desc">Tragen die harten Assets? Der gewichtigste Test ist der zustandsbasierte BTC/Gold-Test: Schlägt Bitcoin Gold über die Dekade — auch dann, wenn das Makro-Bild bestätigt ist?</div>
+    <div class="indicators" id="d1-a"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier d1">EBENE B</span>
+        <span class="section-title">Schuldenmathematik — der Treiber</span>
+      </div>
+      <span class="section-status" id="d1-b-status">—</span>
+    </div>
+    <div class="section-desc">Wächst die Geldmenge weiter, bleiben Realrenditen nicht dauerhaft positiv, zeigt kein großer Block strukturelle fiskalische Disziplin? Drift hier ist Anlass, das monetäre Fundament zu überprüfen.</div>
+    <div class="indicators" id="d1-b"></div>
+  </div>
+
+  <footer>
+    <h4>Lese-Logik Dashboard 1 — Beobachtung statt Urteil</h4>
+    <p>Dashboard 1 kennt bewusst weder Rot noch Gelb noch Grün. Eine Dekaden-Richtungsaussage lässt sich nicht an einer Schwelle festmachen — jeder Indikator zeigt deshalb nur <strong style="color:var(--text-dim)">Wert, Richtung und Kontext</strong>, kein maschinelles Urteil. Zu jedem Indikator gehört eine Beobachtungsfrage; die Antwort darauf ist der interpretierende Teil der Arbeit und bleibt beim Investor. Ein echter Bruch wäre eine seltene, gewichtige Entscheidung — sie gehört in den Kopf, nicht in eine Ampel.</p>
+    <h4>BTC/Gold-Test — zustandsbasiert</h4>
+    <p>Der gewichtigste Test der Grundthese ist nur scharf, wenn Bedingung A erfüllt ist: Makro-Bestätigung liegt vor (Aktien und Gold steigen, Geldmenge wächst). Erst dann zählt Bedingung B: Bitcoin schlägt Gold trotzdem nicht. Ein reiner BTC-Kursrückgang ohne erfülltes A ist ausdrücklich kein Signal. Hinweis: Die Gold-Datenquelle liefert keine Zeitreihe — für das BTC/Gold-Verhältnis gibt es daher zunächst nur den Punktwert, keine Sparkline. Eine vollwertige zustandsbasierte Prüfung von Bedingung A bleibt ein Roadmap-Punkt.</p>
+    <h4>Richtungsanzeige &amp; Sparkline</h4>
+    <p>Die Richtung zeigt die Veränderung gegenüber dem Wert vor rund 3 und 12 Monaten (3M/12M) — der mehrjährige Trend, an dem die Grundthese zu interpretieren ist, nicht das Tagesrauschen. Die Sparkline zeigt bis zu 180 Datenpunkte Verlauf. Beides wird bei jedem Laden frisch aus der Quelle gezogen; wo eine Quelle keine Historie hergibt (Gold), wird das offen ausgewiesen statt geschätzt.</p>
+  </footer>
+
+</div>
+
+<!-- ===================== VIEW: DASHBOARD 2 ===================== -->
+
+<div class="view" id="view-d2">
+
+  <div class="quote">
+    "Solange Renditen, Term Premium und Realrenditen in einem tragbaren Korridor bleiben,
+    funktioniert die geordnete Repression. Brechen sie nachhaltig nach oben aus, bricht
+    der geordnete Pfad — unabhängig davon, welche Politik gewollt ist."
+  </div>
+
+  <div class="verdict" id="verdict-d2">
+    <div class="verdict-label">Gesamturteil · Supercycle</div>
+    <div class="verdict-value" id="verdictValue-d2">— Lädt —</div>
+    <div class="verdict-detail" id="verdictDetail-d2">Indikatoren werden geladen…</div>
+    <div class="verdict-stats" id="verdictStats-d2" style="display:none;">
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color:var(--green)" id="d2-cntGreen">0</span><span class="verdict-stat-label">Im Korridor</span></div>
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color:var(--amber)" id="d2-cntAmber">0</span><span class="verdict-stat-label">Stress</span></div>
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color:var(--red)" id="d2-cntRed">0</span><span class="verdict-stat-label">Bruchpunkt</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier d2">BRUCHPUNKT I</span>
+        <span class="section-title">Anleihemarkt — die bindende Restriktion</span>
+      </div>
+      <span class="section-status" id="d2-i-status">—</span>
+    </div>
+    <div class="section-desc">Die drei expliziten Bruch-Indikatoren. Brechen sie nachhaltig nach oben aus, verläuft der Pfad chaotischer als erwartet — möglicherweise als Stagflations-Schock statt geordneter Repression.</div>
+    <div class="indicators" id="d2-i"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier d2">ANGELPUNKT</span>
+        <span class="section-title">Repression & Absorption</span>
+      </div>
+      <span class="section-status" id="d2-ang-status">—</span>
+    </div>
+    <div class="section-desc">Credibility-Anker, Repressions-Werkzeug und das KI-Substrat. Der schwächere Dollar ist das Werkzeug; die ausländische Treasury-Nachfrage der zentrale Angelpunkt des Szenarios.</div>
+    <div class="indicators" id="d2-ang"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier d2">BRUCHPUNKT II</span>
+        <span class="section-title">Bitcoin — kurzfristige Tech-Natur</span>
+      </div>
+      <span class="section-status" id="d2-ii-status">—</span>
+    </div>
+    <div class="section-desc">Im 1–3-Jahres-Fenster wird Bitcoin wie ein Tech-Asset gehandelt. Es sollte sich nicht stark nach unten vom NASDAQ abkoppeln. Eine Entkopplung von Gold ist hier dagegen normal und erwartet — kein Bruch.</div>
+    <div class="indicators" id="d2-ii"></div>
+  </div>
+
+  <footer>
+    <h4>Lese-Logik Dashboard 2 — scharfe Bruchpunkte</h4>
+    <p><strong style="color:var(--text-dim)">Eine Bruchstelle rot</strong> — der Supercycle steht unter Stress, Re-Assessment des 1–3-Jahres-Fensters. Die Grundthese bleibt unberührt.<br>
+    <strong style="color:var(--text-dim)">Zwei oder mehr Bruchstellen rot</strong> — die geordnete Repression ist gefährdet, der Pfad verläuft chaotischer (Stagflations-Szenario). Defensivere Positionierung im Szenario-Fenster.<br>
+    <strong style="color:var(--text-dim)">BTC/NASDAQ rot</strong> — Bitcoin-spezifisches Problem im Szenario-Fenster, das über allgemeine Tech-Schwäche hinausgeht. Anlass, die Bitcoin-Position kurzfristig zu prüfen.</p>
+    <h4>Nachhaltigkeits-Prüfung — 20 Handelstage</h4>
+    <p>Bruchpunkte sind als <strong style="color:var(--text-dim)">nachhaltige Überschreitungen</strong> definiert, nicht als Momentanwerte. Ein Indikator wird erst rot, wenn seine Schwelle über 20 aufeinanderfolgende Handelstage gehalten wird. Ist die Schwelle aktuell verletzt, aber noch nicht durchgehend, bleibt der Indikator gelb — mit Zähler „Tag X von 20". Konsequenz: Ein kurzer Spike löst keinen Bruchpunkt aus; das Dashboard reagiert bewusst träge und konservativ. Die gestrichelte Linie in der Sparkline markiert die Bruchschwelle.</p>
+    <h4>Methodische Hinweise</h4>
+    <p>Term Premium: aktuell Proxy über den 10J–2J-Spread (DGS10–DGS2). Roadmap: echte Decomposition (NY Fed ACM / Kim-Wright). Foreign-Bid / TIC-Daten sind noch nicht angebunden — als offener Roadmap-Punkt markiert. Die Zeitreihen werden bei jedem Laden frisch aus FRED und CoinGecko gezogen (rund 400 Handelstage); es gibt keine sitzungsübergreifende lokale Speicherung — eine dauerhafte eigene Historie bleibt der Roadmap-Punkt „robustere Datenarchitektur".</p>
+  </footer>
+
+</div>
+
+</div>
+
+<script>
+/* =========================================================================
+   MACRO CONVICTION DASHBOARD v4
+   Zwei strikt getrennte Dashboards in einer Datei:
+   - Dashboard 1 (Grundthese):  Dekaden-Horizont, NUR Gruen/Gelb, kein Rot
+   - Dashboard 2 (Supercycle):  1-3 Jahre, scharfe rote Bruchpunkte
+   Jede Ebene hat eine eigene evaluate()-Logik und ein eigenes Gesamturteil.
+   ========================================================================= */
+
+const FRED_KEY = 'b91bfa6a409fd3c9d1f6b266159aca6c';
+const PROXY = 'https://corsproxy.io/?url=';
+
+/* -------------------------------------------------------------------------
+   INDIKATOR-DEFINITIONEN
+   tag:    'primary' | 'context' | 'proxy' | 'roadmap'  -> visuelle Kennzeichnung
+   Jeder Indikator ist genau einer Profil-Ebene zugeordnet (Spec Kap. 4.1).
+   ------------------------------------------------------------------------- */
+const INDICATORS = {
+
+  /* ===================== DASHBOARD 1 — GRUNDTHESE ======================
+     Ampel kennt bewusst KEIN Rot. evaluate() gibt nur 'green' | 'amber'.
+     ===================================================================== */
+
+  /* Dashboard 1 — Variante A: KEINE evaluate()-Ampel. Jeder Indikator traegt
+     stattdessen ein observe-Objekt:
+       question — die Frage, an der mk laufend interpretiert
+       context  — historische Orientierungspunkte (kein Urteil, nur Kontext)
+     Die Bewertung bleibt bewusst beim Investor. */
+
+  d1_a: [   // Ebene A — Hard Money
+    {
+      id: 'btc_gold', name: 'BTC / Gold-Verhältnis', tag: 'primary', observe: true,
+      threshold: 'Gewichtigstes Warnsignal · zustandsbasiert',
+      explainer: 'Das schärfste Signal der Grundthese. Langfristig soll Bitcoin Gold outperformen — sich vom Risiko-Asset zum überlegenen Wertspeicher wandeln. Der Test ist nur scharf, WENN das Makro-Bild bestätigt ist (Bedingung A). Ein reiner BTC-Kursrückgang ohne Makro-Bestätigung ist kein Signal.',
+      source: 'computed', unit: ' oz', decimals: 1,
+      observation: {
+        question: 'Schlägt Bitcoin Gold über die Dekade — auch bei bestätigtem Makro-Bild?',
+        context: 'Orientierung: 2021-Hoch ≈ 35 · 2022-Tief ≈ 10 · Bullenmarkt-Range grob 20–30. Keine Schwelle — die Interpretation liegt beim Investor.'
+      }
+    },
+    {
+      id: 'gold', name: 'Gold-Spotpreis', tag: 'context', observe: true,
+      threshold: 'Etablierter Hard-Money-Indikator',
+      explainer: 'Spot-Gold in USD pro Unze. Der klassische monetäre Hedge — er bepreist negative Realrenditen und Währungsentwertung. In Dashboard 1 trägt Gold den langfristigen Bezugspunkt für den BTC/Gold-Test.',
+      source: 'goldapi', unit: '$', decimals: 0,
+      observation: {
+        question: 'Trägt Gold den langfristigen Aufwärtstrend — oder entkoppelt das knappe Asset nach unten?',
+        context: 'Kontext für den BTC/Gold-Bezug. Relevant ist der mehrjährige Trend, nicht der Tageswert.'
+      }
+    },
+    {
+      id: 'btc', name: 'Bitcoin-Preis', tag: 'context', observe: true,
+      threshold: 'Langfristige Adoptionswette',
+      explainer: 'Bitcoin als monetäres Sparinstrument und langfristige Adoptionswette. In der Grundthese zählt nicht der absolute Kurs, sondern die relative Entwicklung zu Gold und Geldmenge — der Kurs steht hier nur als Kontext.',
+      source: 'coingecko', coin: 'bitcoin', unit: '$', decimals: 0,
+      observation: {
+        question: 'Nur Kontext — die Grundthese interpretiert Bitcoin relativ zu Gold und Geldmenge, nicht den absoluten Kurs.',
+        context: 'Ein Drawdown allein ist kein Signal. Erst die relative Entwicklung (BTC/Gold) trägt das Warnsignal.'
+      }
+    }
+  ],
+
+  d1_b: [   // Ebene B — Schuldenmathematik
+    {
+      id: 'm2', name: 'Geldmenge M2 (USA)', tag: 'primary', observe: true,
+      threshold: 'Treiber der These — wächst sie weiter?',
+      explainer: 'Die US-Geldmenge M2. Der eigentliche Treiber der Grundthese: Solange kein großer Fiat-Block sein Schuldenproblem löst, wächst die Geldmenge tendenziell exponentiell weiter. Eine nachhaltige Schrumpfung wäre ein Warnsignal.',
+      source: 'fred', series: 'M2SL', unit: ' Bn', decimals: 0,
+      observation: {
+        question: 'Expandiert die Geldmenge weiter — oder stockt der Treiber der These nachhaltig?',
+        context: 'Relevant ist der mehrjährige Trend. Eine einzelne Monatsbewegung trägt kein Urteil.'
+      }
+    },
+    {
+      id: 'dfii10_d1', name: 'Reale 10-Jahres-Rendite (Trend)', tag: 'context', observe: true,
+      threshold: 'Warnsignal: dauerhaft klar positiv',
+      explainer: 'Die reale 10-Jahres-Rendite (TIPS). In der Grundthese ist die Frage nicht ein Tageswert, sondern der Trend: Erodiert das System die reale Schuldenlast noch? Bleiben Realrenditen über Jahre klar positiv, ohne dass das System kippt, ist das ein Warnsignal — das Fundament selbst gehört dann geprüft.',
+      source: 'fred', series: 'DFII10', unit: '%', decimals: 2,
+      observation: {
+        question: 'Bleiben Realrenditen über Jahre klar positiv, ohne dass das System kippt?',
+        context: 'Anders als in Dashboard 2 zählt hier nicht der Tageswert, sondern der mehrjährige Trend.'
+      }
+    },
+    {
+      id: 'debt_gdp', name: 'Schulden / BIP — große Blöcke', tag: 'roadmap', observe: true,
+      threshold: 'Warnsignal: ein Block zeigt fiskalische Disziplin',
+      explainer: 'Das Schulden/BIP-Verhältnis großer Fiat-Blöcke. Warnsignal der Grundthese: Senkt mindestens ein großer Block (USA, EU, China) seine Quote strukturell — nicht zyklisch —, verschiebt das das Bild. Datenquelle IWF/FRED noch nicht angebunden.',
+      source: 'roadmap', unit: '%', decimals: 1,
+      observation: {
+        question: 'Zeigt mindestens ein großer Fiat-Block strukturelle fiskalische Disziplin?',
+        context: 'Datenquelle IWF/FRED noch nicht angebunden — als Roadmap-Punkt markiert.'
+      }
+    }
+  ],
+
+  /* ===================== DASHBOARD 2 — SUPERCYCLE ======================
+     Ampel kennt scharfe rote Bruchpunkte. Schwellen exakt aus Spec Kap. 4.3.
+     ===================================================================== */
+
+  d2_i: [   // Bruchpunkt I — Anleihemarkt
+    {
+      id: 'dgs10', name: '10-Jahres-Rendite', tag: 'primary',
+      threshold: 'Grün <4,5 % · Gelb 4,5–5,5 % · Rot >5,5 % (20 Tage)',
+      explainer: 'Die Rendite 10-jähriger US-Staatsanleihen — der globale Maßstab für langfristige Finanzierungskosten. Oberhalb 5,5 % nachhaltig wird die Refinanzierung der Staatsschuld mathematisch untragbar; der geordnete Repressions-Pfad bricht.',
+      source: 'fred', series: 'DGS10', unit: '%', decimals: 2,
+      breakRule: { side: 'above', level: 5.5 },
+      evaluate: (v) => {
+        if (v > 5.5) return { s: 'red', t: 'Bruchpunkt — Refinanzierung untragbar' };
+        if (v >= 4.5) return { s: 'amber', t: 'Stress — Korridor wird strapaziert' };
+        return { s: 'green', t: 'Innerhalb des tragbaren Korridors' };
+      }
+    },
+    {
+      id: 'term_premium', name: '10Y–2Y-Spread (Term-Premium-Proxy)', tag: 'proxy',
+      threshold: 'Grün <1,0 % · Gelb 1,0–1,5 % · Rot >1,5 % (20 Tage)',
+      explainer: 'Differenz zwischen 10- und 2-Jahres-Rendite — Proxy für die Laufzeitprämie. Oberhalb 1,5 % nachhaltig bepreist der Markt das Duration-Risiko neu. Hinweis: echtes Term Premium (NY Fed ACM) ist ein Roadmap-Punkt; der Spread ist nur eine Näherung.',
+      source: 'computed', unit: '%', decimals: 2,
+      breakRule: { side: 'above', level: 1.5 },
+      evaluate: (v) => {
+        if (v > 1.5) return { s: 'red', t: 'Bruchpunkt — Term-Premium-Expansion' };
+        if (v >= 1.0) return { s: 'amber', t: 'Stress — Kurve versteilt sich' };
+        if (v < -0.3) return { s: 'amber', t: 'Invers — Rezessionssignal' };
+        return { s: 'green', t: 'Laufzeitprämie im Korridor' };
+      }
+    },
+    {
+      id: 'dfii10', name: 'Reale 10-Jahres-Rendite (TIPS)', tag: 'primary',
+      threshold: 'Grün <2,25 % · Gelb 2,25–2,75 % · Rot >2,75 % (20 Tage)',
+      explainer: 'Die inflationsbereinigte 10-Jahres-Rendite aus TIPS. Oberhalb 2,75 % nachhaltig wird die reale Schuldenlast erdrückend — schlecht für die Refinanzierung und für die produktivitätsgetriebene Architektur.',
+      source: 'fred', series: 'DFII10', unit: '%', decimals: 2,
+      breakRule: { side: 'above', level: 2.75 },
+      evaluate: (v) => {
+        if (v > 2.75) return { s: 'red', t: 'Bruchpunkt — reale Schuldenlast zu hoch' };
+        if (v >= 2.25) return { s: 'amber', t: 'Stress — Realrenditen steigen' };
+        return { s: 'green', t: 'Reale Last im Korridor' };
+      }
+    }
+  ],
+
+  d2_ang: [ // Angelpunkt — Repression & Absorption
+    {
+      id: 't5yie', name: '5-Jahres-Breakeven-Inflation', tag: 'primary',
+      threshold: 'Grün 1,8–2,7 % · Gelb 2,7–3,0 % · Rot >3,0 % (20 Tage)',
+      explainer: 'Markt-implizite Inflationserwartung für 5 Jahre. Der Credibility-Anker des Szenarios: Toleriert der Markt die Inflation? Oberhalb 3 % glaubt der Markt das 2-%-Ziel nicht mehr — eine Credibility-Erosion.',
+      source: 'fred', series: 'T5YIE', unit: '%', decimals: 2,
+      breakRule: { side: 'above', level: 3.0 },
+      evaluate: (v) => {
+        if (v > 3.0) return { s: 'red', t: 'Bruchpunkt — Erwartungen entankert' };
+        if (v >= 2.7) return { s: 'amber', t: 'Stress — Erwartungen driften' };
+        if (v < 1.8) return { s: 'amber', t: 'Stress — Deflationsrisiko' };
+        return { s: 'green', t: 'Inflationsanker hält' };
+      }
+    },
+    {
+      id: 'dxy', name: 'Broad-Dollar-Index', tag: 'primary',
+      threshold: 'Grün <125 · Gelb 125–135 · Rot >135 (20 Tage)',
+      explainer: 'Der handelsgewichtete Dollar-Index. Ein schwächerer Dollar ist das Repressions-Werkzeug: Er hält Treasury-Holdings für ausländische Käufer attraktiv. Ein zu starker Dollar bricht die ausländische Duration-Nachfrage.',
+      source: 'fred', series: 'DTWEXBGS', unit: '', decimals: 2,
+      breakRule: { side: 'above', level: 135 },
+      evaluate: (v) => {
+        if (v > 135) return { s: 'red', t: 'Bruchpunkt — Dollar zu stark, Foreign Bid bricht' };
+        if (v >= 125) return { s: 'amber', t: 'Stress — Dollarstärke erschwert Repression' };
+        return { s: 'green', t: 'Dollar im Repressions-Korridor' };
+      }
+    },
+    {
+      id: 'foreign_bid', name: 'Foreign Bid / TIC-Daten', tag: 'roadmap',
+      threshold: 'Zentraler Angelpunkt — Absorptionstempo',
+      explainer: 'Ausländische Treasury-Bestände und Auction-Bid-to-Cover-Ratios. Laut Spec der zentrale Angelpunkt des Supercycle — die Absorptions-Flanke. TIC-Daten erscheinen mit Verzögerung und sind noch nicht angebunden; explizit als Roadmap-Punkt markiert.',
+      source: 'roadmap', unit: '', decimals: 0,
+      evaluate: () => ({ s: 'amber', t: 'Roadmap — TIC-Datenanbindung ausstehend' })
+    },
+    {
+      id: 'nasdaq', name: 'NASDAQ Composite', tag: 'context',
+      threshold: 'KI-Substrat — Rot <14000 (20 Tage)',
+      explainer: 'Tech-lastiger Index, dominiert von Hyperscalern und KI-Infrastruktur. Begleitmessung: KI ist Begleitfaktor, nicht Treiber des Supercycle. Der NASDAQ liefert die direkteste Ablesung, ob das KI-Substrat compoundiert.',
+      source: 'fred', series: 'NASDAQCOM', unit: '', decimals: 0,
+      breakRule: { side: 'below', level: 14000 },
+      evaluate: (v) => {
+        if (v > 18000) return { s: 'green', t: 'KI-Substrat compoundiert' };
+        if (v >= 14000) return { s: 'amber', t: 'Stress — Momentum schwächt' };
+        return { s: 'red', t: 'Substrat-Story unter Druck' };
+      }
+    },
+    {
+      id: 'sp500', name: 'S&P 500', tag: 'context',
+      threshold: 'Breiter Markt — Rot <4500 (20 Tage)',
+      explainer: 'Der S&P 500 als Proxy für die breite Risk-Asset-Performance. Für die produktivitätsgetriebene Architektur müssen Aktien compoundieren. Ein nachhaltiger Bärenmarkt würde signalisieren, dass der Substrat-Übergang scheitert.',
+      source: 'fred', series: 'SP500', unit: '', decimals: 0,
+      breakRule: { side: 'below', level: 4500 },
+      evaluate: (v) => {
+        if (v > 5500) return { s: 'green', t: 'Breiter Markt compoundiert' };
+        if (v >= 4500) return { s: 'amber', t: 'Stress — Korrekturphase' };
+        return { s: 'red', t: 'Bärenmarkt — Substrat-Story gebrochen' };
+      }
+    }
+  ],
+
+  d2_ii: [  // Bruchpunkt II — Bitcoin / NASDAQ
+    {
+      id: 'btc_nasdaq', name: 'BTC / NASDAQ-Verhältnis', tag: 'primary',
+      threshold: 'Grün ≥5,5 · Gelb 4,0–5,5 · Rot <4,0 (20 Tage)',
+      explainer: 'Bruchpunkt II. Im Supercycle-Fenster wird Bitcoin wie ein Tech-Asset gehandelt und sollte grob mit dem NASDAQ laufen. Koppelt es sich deutlich nach unten ab — NASDAQ hält, Bitcoin bleibt zurück —, zeigt das ein Bitcoin-spezifisches Problem über die allgemeine Tech-Schwäche hinaus.',
+      source: 'computed', unit: '', decimals: 2,
+      breakRule: { side: 'below', level: 4.0 },
+      evaluate: (v) => {
+        if (v >= 5.5) return { s: 'green', t: 'Bitcoin läuft mit dem NASDAQ' };
+        if (v >= 4.0) return { s: 'amber', t: 'Stress — leichte Abkopplung nach unten' };
+        return { s: 'red', t: 'Bruchpunkt — deutliche Abkopplung vom NASDAQ' };
+      }
+    },
+    {
+      id: 'btc_gold_ctx', name: 'BTC / Gold-Verhältnis (Kontext)', tag: 'context',
+      threshold: 'Sekundär — Dekaden-Test liegt in Dashboard 1',
+      explainer: 'Das BTC/Gold-Verhältnis läuft hier nur als Kontext mit. Eine kurzfristige Entkopplung von Gold ist im Supercycle-Fenster normal und erwartet — sie ist hier ausdrücklich KEIN Bruch. Der scharfe BTC/Gold-Test gehört zum Dekaden-Horizont und liegt in Dashboard 1.',
+      source: 'computed', unit: ' oz', decimals: 1,
+      evaluate: (v) => {
+        if (v >= 18) return { s: 'green', t: 'Kontext — Bitcoin führt ggü. Gold' };
+        if (v >= 12) return { s: 'amber', t: 'Kontext — Abkopplung von Gold (im Fenster normal)' };
+        return { s: 'amber', t: 'Kontext — kurzfristige Gold-Entkopplung, kein Bruch' };
+      }
+    }
+  ]
+};
+
+/* Container-Zuordnung: welche Tier-Listen gehören zu welchem Dashboard */
+const LAYOUT = {
+  d1: [ ['d1_a', 'd1-a'], ['d1_b', 'd1-b'] ],
+  d2: [ ['d2_i', 'd2-i'], ['d2_ang', 'd2-ang'], ['d2_ii', 'd2-ii'] ]
+};
+
+let cache = {};
+let resultsByTier = {};
+
+/* ----------------------------- DATA FETCHERS -----------------------------
+   Jeder Fetcher liefert jetzt eine Zeitreihe:
+     { value, date, prev, series:[{date,value}, ...] }   chronologisch (alt -> neu)
+   series ermoeglicht Sparklines, mehrjaehrige Richtung und die 20-Tage-Pruefung.
+   Wo eine Quelle keine Historie hergibt (Gold-API), ist series leer -> ehrlich
+   ausgewiesen, nicht kaschiert.
+   -------------------------------------------------------------------------- */
+
+const HISTORY_DAYS = 420;   // ~ FRED-Beobachtungen, deckt 12M-Vergleich + Puffer
+
+async function fetchFRED(seriesId) {
+  const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_KEY}&file_type=json&sort_order=desc&limit=${HISTORY_DAYS}`;
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(url));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data.observations || !data.observations.length) throw new Error('Keine Beobachtungen');
+    // FRED liefert desc -> in chronologische Reihe drehen, Luecken (".") raus.
+    const series = data.observations
+      .filter(o => o.value !== '.')
+      .map(o => ({ date: o.date, value: parseFloat(o.value) }))
+      .reverse();
+    if (!series.length) throw new Error('Alle Werte fehlen');
+    const last = series[series.length - 1];
+    const prev = series.length > 1 ? series[series.length - 2].value : null;
+    return { value: last.value, date: last.date, prev, series };
+  } catch (e) {
+    console.error(`FRED ${seriesId} fehlgeschlagen:`, e);
+    return null;
+  }
+}
+
+async function fetchCoinGecko(coin) {
+  // market_chart liefert echte Tageshistorie; daily-Interval ueber 365 Tage.
+  const histUrl = `https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=365&interval=daily`;
+  try {
+    const res = await fetch(histUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data.prices || !data.prices.length) throw new Error('Keine Preishistorie');
+    const series = data.prices.map(p => ({
+      date: new Date(p[0]).toISOString().split('T')[0],
+      value: p[1]
+    }));
+    const last = series[series.length - 1];
+    const prev = series.length > 1 ? series[series.length - 2].value : null;
+    return { value: last.value, date: last.date, prev, series };
+  } catch (e) {
+    console.error(`CoinGecko ${coin} Historie fehlgeschlagen:`, e);
+    // Fallback: wenigstens der aktuelle Spotwert, ohne Reihe.
+    try {
+      const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd&include_last_updated_at=true`);
+      const d = await r.json();
+      const v = d[coin]?.usd;
+      if (v === undefined) throw new Error('Kein Preis');
+      const t = d[coin]?.last_updated_at;
+      return { value: v, date: t ? new Date(t * 1000).toISOString().split('T')[0] : 'heute', prev: null, series: [] };
+    } catch (e2) {
+      console.error(`CoinGecko ${coin} Fallback fehlgeschlagen:`, e2);
+      return null;
+    }
+  }
+}
+
+async function fetchGold() {
+  // Gold-API (kostenlos) liefert NUR den Spotwert, keine Historie.
+  // Ehrlich ausgewiesen: series bleibt leer -> keine Sparkline fuer Gold.
+  try {
+    const res = await fetch('https://api.gold-api.com/price/XAU');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.price === undefined) throw new Error('Kein Preisfeld');
+    return {
+      value: data.price,
+      date: data.updatedAt ? data.updatedAt.split('T')[0] : new Date().toISOString().split('T')[0],
+      prev: null,
+      series: []
+    };
+  } catch (e) {
+    console.error('Gold-API fehlgeschlagen:', e);
+    return null;
+  }
+}
+
+/* --------------------------- VALUE FORMATTING ---------------------------- */
+function formatValue(value, ind) {
+  if (value === null || value === undefined) return '—';
+  if (ind.unit === '$') {
+    return '$' + value.toLocaleString('de-DE', {
+      maximumFractionDigits: ind.decimals, minimumFractionDigits: ind.decimals
+    });
+  }
+  if (ind.unit === ' Bn') {
+    return '$' + (value / 1000).toLocaleString('de-DE', { maximumFractionDigits: 2 }) + ' Bio';
+  }
+  return value.toLocaleString('de-DE', {
+    maximumFractionDigits: ind.decimals, minimumFractionDigits: ind.decimals
+  }) + (ind.unit || '');
+}
+
+/* ------------------------------- RENDERING ------------------------------- */
+const TAG_LABEL = { primary: 'Primär', context: 'Kontext', proxy: 'Proxy', roadmap: 'Roadmap' };
+
+/* Sparkline als Inline-SVG. Nimmt die letzten maxPoints Datenpunkte.
+   color faerbt die Linie; thresholdLevel zeichnet optional eine gestrichelte
+   Schwellenlinie (fuer Dashboard-2-Bruchpunkte). */
+function sparklineHtml(series, color, thresholdLevel) {
+  if (!series || series.length < 2) {
+    return `<div class="sparkline"><div class="spark-empty">○ keine Historie verfügbar (Datenquelle ohne Zeitreihe)</div></div>`;
+  }
+  const maxPoints = 180;
+  const pts = series.slice(-maxPoints);
+  const W = 100, H = 38, pad = 2;
+  let lo = Math.min(...pts.map(p => p.value));
+  let hi = Math.max(...pts.map(p => p.value));
+  if (thresholdLevel != null) { lo = Math.min(lo, thresholdLevel); hi = Math.max(hi, thresholdLevel); }
+  const span = (hi - lo) || 1;
+  const x = i => pad + (i / (pts.length - 1)) * (W - 2 * pad);
+  const y = v => H - pad - ((v - lo) / span) * (H - 2 * pad);
+
+  const linePts = pts.map((p, i) => `${x(i).toFixed(2)},${y(p.value).toFixed(2)}`).join(' ');
+  const areaPts = `${pad},${H - pad} ${linePts} ${(W - pad)},${H - pad}`;
+  const thr = thresholdLevel != null
+    ? `<line class="spark-threshold" x1="${pad}" y1="${y(thresholdLevel).toFixed(2)}" x2="${W - pad}" y2="${y(thresholdLevel).toFixed(2)}" stroke="var(--red)"/>`
+    : '';
+
+  const first = pts[0], last = pts[pts.length - 1];
+  return `
+    <div class="sparkline">
+      <div class="sparkline-head">
+        <span>${first.date}</span>
+        <span>${pts.length} Datenpunkte</span>
+        <span>${last.date}</span>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        <polygon class="spark-area" points="${areaPts}" fill="${color}"/>
+        <polyline class="spark-line" points="${linePts}" stroke="${color}"/>
+        ${thr}
+      </svg>
+    </div>`;
+}
+
+/* Sustained-Fortschrittsbalken (20-Tage-Regel) fuer Dashboard-2-Karten. */
+function sustainedHtml(ev) {
+  const su = ev && ev.sustained;
+  if (!su) return '';
+  if (su.insufficient) {
+    return `<div class="sustained ${ev.s}">
+      <div class="sustained-label"><span>NACHHALTIGKEITS-PRÜFUNG</span><span>${su.streak}/${su.need} Tage</span></div>
+      <div class="sustained-track"><div class="sustained-fill" style="width:${Math.min(100, su.streak / su.need * 100)}%"></div></div>
+      <div class="sustained-note">Reihe noch zu kurz für die volle 20-Tage-Prüfung — bis dahin gilt der Momentanwert.</div>
+    </div>`;
+  }
+  const pct = Math.min(100, su.streak / su.need * 100);
+  const note = su.confirmed
+    ? 'Schwelle über 20 Handelstage gehalten — Bruchpunkt bestätigt.'
+    : (su.streak > 0
+        ? 'Schwelle aktuell verletzt, aber noch nicht nachhaltig — bleibt Gelb bis Tag 20.'
+        : 'Schwelle nicht verletzt.');
+  return `<div class="sustained ${ev.s}">
+    <div class="sustained-label"><span>NACHHALTIGKEITS-PRÜFUNG · 20 HANDELSTAGE</span><span>${su.streak}/${su.need}</span></div>
+    <div class="sustained-track"><div class="sustained-fill" style="width:${pct}%"></div></div>
+    <div class="sustained-note">${note}</div>
+  </div>`;
+}
+
+
+/* Richtungsanzeige. Mit Zeitreihe: echter Vergleich gegen den Wert vor
+   ~3 und ~12 Monaten (mehrjaehriger Trend, nicht Tagesrauschen). Ohne Reihe:
+   ehrlicher Hinweis, dass kein Vergleichswert vorliegt. */
+function directionHtml(result) {
+  const s = result && result.series;
+  if (!s || s.length < 2) {
+    return `<div class="card-direction"><span class="flat">○</span> keine Historie — kein Vergleichswert</div>`;
+  }
+  const last = s[s.length - 1].value;
+  const lookback = (n) => s.length > n ? s[s.length - 1 - n].value : null;
+  // FRED-Renditen taeglich; ~63 Handelstage = 3M, ~252 = 12M.
+  const v3 = lookback(63), v12 = lookback(252);
+
+  const fmt = (past, label) => {
+    if (past == null || past === 0) return `<span class="flat">○</span> ${label}: —`;
+    const pct = ((last - past) / Math.abs(past)) * 100;
+    const up = pct > 0.05, down = pct < -0.05;
+    const cls = up ? 'up' : (down ? 'down' : 'flat');
+    const arrow = up ? '▲' : (down ? '▼' : '→');
+    const sign = pct > 0 ? '+' : '';
+    return `<span class="arrow ${cls}">${arrow}</span> ${label}: ${sign}${pct.toFixed(1)}%`;
+  };
+  return `<div class="card-direction">${fmt(v3, '3M')} &nbsp;·&nbsp; ${fmt(v12, '12M')}</div>`;
+}
+
+/* Beobachtungs-Karte (Dashboard 1) — neutraler Marker, kein Urteil. */
+function renderObserveCard(ind, result) {
+  const isLoading = result === undefined;
+  const isRoadmap = ind.source === 'roadmap';
+  const isError = result === null && !isRoadmap;
+
+  let valueText = '—';
+  let directionBlock = '';
+  let sparkHtml = '';
+
+  if (isRoadmap) {
+    valueText = 'n/a';
+  } else if (isError) {
+    valueText = 'Fehler';
+  } else if (!isLoading && result && result.value != null) {
+    valueText = formatValue(result.value, ind);
+    directionBlock = directionHtml(result);
+    // Beobachtungs-Sparkline in D1-Blau, ohne Schwellenlinie (kein Urteil).
+    sparkHtml = sparklineHtml(result.series, 'var(--d1)', null);
+  } else if (!isLoading && result && result.value == null) {
+    valueText = '—';
+  }
+
+  const tagClass = ind.tag === 'primary' ? 'primary' : (ind.tag === 'proxy' ? 'proxy' : '');
+  const tagHtml = ind.tag ? `<span class="card-tag ${tagClass}">${TAG_LABEL[ind.tag]}</span>` : '';
+  const dateHtml = (result && result.date) ? `<div class="card-date">${result.date}</div>` : '';
+  const cardClass = isLoading ? 'observe loading' : (isError ? 'observe error' : 'observe');
+
+  const ob = ind.observation || {};
+  const obsBlock = ob.question ? `
+    <div class="observe-block">
+      <div class="observe-question">${ob.question}</div>
+      ${ob.context ? `<div class="observe-context">${ob.context}</div>` : ''}
+    </div>` : '';
+
+  return `
+    <div class="card ${cardClass}">
+      <div class="card-row">
+        <div class="card-info">
+          <div class="card-name-row">
+            <div class="card-name">${ind.name}</div>
+            ${tagHtml}
+            <span class="card-tag">Beobachtung</span>
+          </div>
+          <div class="card-threshold">${ind.threshold}</div>
+        </div>
+        <div class="card-value-block">
+          <div class="card-value">${valueText}</div>
+          ${dateHtml}
+        </div>
+      </div>
+      ${directionBlock}
+      ${sparkHtml}
+      <div class="card-explainer">${ind.explainer}</div>
+      ${obsBlock}
+    </div>`;
+}
+
+function renderCard(ind, result) {
+  // Dashboard-1-Indikatoren: Beobachtungs-Pfad, keine Ampel.
+  if (ind.observe) return renderObserveCard(ind, result);
+
+  const isLoading = result === undefined;
+  const isError = result === null && ind.source !== 'roadmap';
+  const isRoadmap = ind.source === 'roadmap';
+
+  let statusClass = 'loading';
+  let statusText = 'Lädt…';
+  let valueText = '—';
+  let ev = null;
+
+  if (isRoadmap) {
+    ev = ind.evaluate();
+    statusClass = ev.s;
+    statusText = `<span class="dot"></span>${ev.t}`;
+    valueText = 'n/a';
+  } else if (isError) {
+    statusClass = 'error';
+    statusText = '<span class="dot"></span>Daten nicht verfügbar';
+    valueText = 'Fehler';
+  } else if (!isLoading && result && result.value !== undefined) {
+    ev = evaluateSustained(ind, result);
+    statusClass = ev.s;
+    statusText = `<span class="dot"></span>${ev.t}`;
+    valueText = formatValue(result.value, ind);
+  }
+
+  const tagClass = ind.tag === 'primary' ? 'primary' : (ind.tag === 'proxy' ? 'proxy' : '');
+  const tagHtml = ind.tag ? `<span class="card-tag ${tagClass}">${TAG_LABEL[ind.tag]}</span>` : '';
+  const dateHtml = (result && result.date) ? `<div class="card-date">${result.date}</div>` : '';
+
+  // Sparkline: nur bei echten Daten mit Reihe. Schwellenlinie aus breakRule.
+  let sparkHtml = '';
+  let sustainedBlock = '';
+  if (!isLoading && !isRoadmap && result && result.value !== undefined && result !== null) {
+    const thr = ind.breakRule ? ind.breakRule.level : null;
+    sparkHtml = sparklineHtml(result.series, 'var(--d2)', thr);
+    sustainedBlock = sustainedHtml(ev);
+  }
+
+  return `
+    <div class="card ${statusClass}" data-status="${statusClass}">
+      <div class="card-row">
+        <div class="card-info">
+          <div class="card-name-row">
+            <div class="card-name">${ind.name}</div>
+            ${tagHtml}
+          </div>
+          <div class="card-threshold">${ind.threshold}</div>
+          <div class="card-status">${statusText}</div>
+        </div>
+        <div class="card-value-block">
+          <div class="card-value">${valueText}</div>
+          ${dateHtml}
+        </div>
+      </div>
+      ${sparkHtml}
+      ${sustainedBlock}
+      <div class="card-explainer">${ind.explainer}</div>
+    </div>`;
+}
+
+function renderPlaceholders(tierKey, containerId) {
+  document.getElementById(containerId).innerHTML =
+    INDICATORS[tierKey].map(ind => renderCard(ind, undefined)).join('');
+}
+
+/* --------------------------- COMPUTED METRICS ---------------------------- */
+/* Verknuepft zwei Zeitreihen ueber gemeinsame Datumswerte zu einer abgeleiteten
+   Reihe (Differenz oder Verhaeltnis). Gibt es fuer einen der Inputs keine Reihe
+   (z. B. Gold ohne Historie), bleibt series leer — ehrlich, keine Schein-Daten. */
+function joinSeries(sA, sB, fn) {
+  if (!sA || !sB || !sA.length || !sB.length) return [];
+  const mapB = new Map(sB.map(p => [p.date, p.value]));
+  const out = [];
+  for (const p of sA) {
+    if (mapB.has(p.date)) {
+      const v = fn(p.value, mapB.get(p.date));
+      if (v != null && isFinite(v)) out.push({ date: p.date, value: v });
+    }
+  }
+  return out;
+}
+
+function computeDerived(id) {
+  if (id === 'term_premium') {
+    const a = cache.dgs10, b = cache.dgs2;
+    if (!a || !b) return null;
+    const series = joinSeries(a.series, b.series, (x, y) => x - y);
+    const value = a.value - b.value;
+    const prev = series.length > 1 ? series[series.length - 2].value
+               : (a.prev != null && b.prev != null ? a.prev - b.prev : null);
+    return { value, date: a.date, prev, series };
+  }
+  if (id === 'btc_gold' || id === 'btc_gold_ctx') {
+    const btc = cache.btc, gold = cache.gold;
+    if (!btc || !gold || gold.value <= 0) return null;
+    // Gold hat keine Reihe -> series bleibt leer, nur Punktwert.
+    const series = joinSeries(btc.series, gold.series, (x, y) => y > 0 ? x / y : null);
+    const value = btc.value / gold.value;
+    const prev = series.length > 1 ? series[series.length - 2].value : null;
+    return { value, date: btc.date, prev, series };
+  }
+  if (id === 'btc_nasdaq') {
+    const btc = cache.btc, ndx = cache.nasdaq;
+    if (!btc || !ndx || ndx.value <= 0) return null;
+    const series = joinSeries(btc.series, ndx.series, (x, y) => y > 0 ? x / y : null);
+    const value = btc.value / ndx.value;
+    const prev = series.length > 1 ? series[series.length - 2].value : null;
+    return { value, date: btc.date, prev, series };
+  }
+  return null;
+}
+
+/* ------------------------ SUSTAINED-PRUEFUNG (20T) -----------------------
+   Spec: Bruchpunkte sind als NACHHALTIGE Ueberschreitungen definiert, nicht
+   als Momentanwerte. Ein Bruchpunkt (Rot) gilt erst, wenn die Schwelle ueber
+   SUSTAINED_DAYS aufeinanderfolgende Datenpunkte gehalten wird. Ist die
+   Schwelle aktuell verletzt, aber noch nicht durchgehend -> Herabstufung auf
+   Gelb mit Zaehler "Tag X von 20".
+   -------------------------------------------------------------------------- */
+const SUSTAINED_DAYS = 20;
+
+/* Zaehlt, wie viele der JUENGSTEN Datenpunkte ununterbrochen die Schwelle
+   verletzen (von hinten nach vorn). */
+function countSustained(series, rule) {
+  if (!series || !series.length || !rule) return 0;
+  let streak = 0;
+  for (let i = series.length - 1; i >= 0; i--) {
+    const v = series[i].value;
+    const broken = rule.side === 'above' ? v > rule.level : v < rule.level;
+    if (broken) streak++;
+    else break;
+  }
+  return streak;
+}
+
+/* Wrapper um ind.evaluate(): wendet die 20-Tage-Regel an, wo eine breakRule
+   und eine ausreichende Reihe existieren. Gibt zusaetzlich Streak-Infos zurueck. */
+function evaluateSustained(ind, result) {
+  const base = ind.evaluate(result.value);
+  // Keine breakRule, keine Reihe, oder Reihe zu kurz fuer eine ehrliche Pruefung:
+  // dann unveraendert die Momentanwert-Ampel — aber transparent markiert.
+  if (!ind.breakRule) return { ...base, sustained: null };
+
+  const series = result.series || [];
+  if (series.length < SUSTAINED_DAYS) {
+    // Reihe reicht nicht fuer 20-Tage-Pruefung -> Momentanwert, ehrlich gekennzeichnet.
+    return { ...base, sustained: { streak: countSustained(series, ind.breakRule),
+             need: SUSTAINED_DAYS, insufficient: true } };
+  }
+
+  const streak = countSustained(series, ind.breakRule);
+  const confirmed = streak >= SUSTAINED_DAYS;
+
+  if (base.s === 'red' && !confirmed) {
+    // Schwelle verletzt, aber nicht nachhaltig -> auf Gelb herab.
+    return {
+      s: 'amber',
+      t: `Schwelle berührt — Tag ${streak} von ${SUSTAINED_DAYS}, noch kein Bruch`,
+      sustained: { streak, need: SUSTAINED_DAYS, confirmed: false }
+    };
+  }
+  if (base.s === 'red' && confirmed) {
+    return {
+      s: 'red',
+      t: `${base.t} · nachhaltig (${streak}T ≥ ${SUSTAINED_DAYS}T)`,
+      sustained: { streak, need: SUSTAINED_DAYS, confirmed: true }
+    };
+  }
+  // Gruen/Gelb unveraendert.
+  return { ...base, sustained: { streak, need: SUSTAINED_DAYS, confirmed: false } };
+}
+
+/* ------------------------------ TIER LOADER ------------------------------ */
+async function loadTier(tierKey, containerId) {
+  renderPlaceholders(tierKey, containerId);
+  const tier = INDICATORS[tierKey];
+
+  const results = await Promise.all(tier.map(async (ind) => {
+    let result = null;
+    if (ind.source === 'fred') {
+      result = await fetchFRED(ind.series);
+    } else if (ind.source === 'coingecko') {
+      result = await fetchCoinGecko(ind.coin);
+    } else if (ind.source === 'goldapi') {
+      result = await fetchGold();
+    } else if (ind.source === 'roadmap') {
+      result = { value: null, date: null, roadmap: true };
+    } else if (ind.source === 'computed') {
+      result = computeDerived(ind.id);
+    }
+    if (result && !result.roadmap) cache[ind.id] = result;
+    return { ind, result };
+  }));
+
+  document.getElementById(containerId).innerHTML =
+    results.map(({ ind, result }) => renderCard(ind, result)).join('');
+
+  // Sektions-Statuszeile
+  const isObserveTier = tier.every(i => i.observe);
+  const statusEl = document.getElementById(containerId + '-status');
+
+  if (isObserveTier) {
+    // Dashboard 1: kein Ampel-Zaehler. Nur, wie viele Werte geladen sind.
+    let loaded = 0, total = 0;
+    results.forEach(({ result, ind }) => {
+      if (ind.source === 'roadmap') { total++; return; }
+      total++;
+      if (result && result.value != null) loaded++;
+    });
+    if (statusEl) {
+      statusEl.innerHTML = `<span style="color:var(--d1)">○ BEOBACHTUNG · ${loaded}/${total} Werte</span>`;
+    }
+  } else {
+    const counts = { green: 0, amber: 0, red: 0, error: 0 };
+    results.forEach(({ result, ind }) => {
+      if (ind.source === 'roadmap') { counts.amber++; return; }
+      if (!result) { counts.error++; return; }
+      counts[evaluateSustained(ind, result).s]++;
+    });
+    if (statusEl) {
+      if (counts.red > 0) statusEl.innerHTML = `<span style="color:var(--red)">● ${counts.red} BRUCHPUNKT</span>`;
+      else if (counts.amber > 0) statusEl.innerHTML = `<span style="color:var(--amber)">● ${counts.amber} WARNSIGNAL</span>`;
+      else if (counts.green > 0) statusEl.innerHTML = `<span style="color:var(--green)">● IM KORRIDOR</span>`;
+      else statusEl.innerHTML = `<span style="color:var(--text-faint)">● KEINE DATEN</span>`;
+    }
+  }
+
+  resultsByTier[tierKey] = results;
+  return results;
+}
+
+/* ===================== GESAMTURTEIL — DASHBOARD 1 =======================
+   Dekaden-Logik: NUR Gruen/Gelb. Ein einziges Warnsignal genuegt, um auf
+   Gelb zu gehen — die These wird dadurch nicht widerlegt, aber geprueft.
+   ======================================================================== */
+/* ===================== GESAMTLAGE — DASHBOARD 1 =========================
+   Variante A: KEIN Urteil, KEINE Ampelfarbe. Die Funktion fasst nur die
+   Beobachtungslage zusammen — wie viele Indikatoren geladen sind, wie viele
+   eine ablesbare Richtung haben. Die Interpretation bleibt beim Investor.
+   ======================================================================== */
+function verdictD1() {
+  const all = [...resultsByTier.d1_a || [], ...resultsByTier.d1_b || []];
+  let total = 0, loaded = 0, withDir = 0, roadmap = 0;
+
+  all.forEach(({ ind, result }) => {
+    total++;
+    if (ind.source === 'roadmap') { roadmap++; return; }
+    if (result && result.value != null) {
+      loaded++;
+      if (result.prev != null) withDir++;
+    }
+  });
+
+  const v = document.getElementById('verdict-d1');
+  const val = document.getElementById('verdictValue-d1');
+  const det = document.getElementById('verdictDetail-d1');
+
+  // Bewusst neutral: 'verdict' ohne green/amber/red-Klasse.
+  v.className = 'verdict';
+  document.getElementById('verdictStats-d1').style.display = 'flex';
+  document.getElementById('d1-cntGreen').textContent = loaded;
+  document.getElementById('d1-cntAmber').textContent = withDir;
+
+  val.textContent = 'Beobachtungslage';
+  det.textContent = `${loaded} von ${total} Indikatoren mit aktuellem Wert geladen` +
+    (roadmap ? `, davon ${roadmap} noch nicht angebunden (Roadmap)` : '') +
+    `. Dashboard 1 fällt bewusst kein Urteil — es legt die Faktenlage offen, an der die Grundthese laufend zu interpretieren ist. Ein echter Bruch gehört in den Kopf, nicht in eine Ampel.`;
+}
+
+/* ===================== GESAMTURTEIL — DASHBOARD 2 =======================
+   Supercycle-Logik: scharfe Bruchpunkte. Zaehlt nur die ROTEN Bruchpunkte
+   aus Bruchpunkt I; BTC/NASDAQ wird separat geprueft (Bruchpunkt II).
+   ======================================================================== */
+function verdictD2() {
+  let green = 0, amber = 0, red = 0;
+  let breakI = 0;             // rote Bruchpunkte am Anleihemarkt
+  let btcNasdaqRed = false;
+
+  const all = [...resultsByTier.d2_i || [], ...resultsByTier.d2_ang || [], ...resultsByTier.d2_ii || []];
+  all.forEach(({ ind, result }) => {
+    let s;
+    if (ind.source === 'roadmap') s = ind.evaluate().s;
+    else if (!result) return;
+    else s = evaluateSustained(ind, result).s;
+    if (s === 'green') green++;
+    if (s === 'amber') amber++;
+    if (s === 'red') red++;
+  });
+
+  // Bruchpunkt I zaehlt nur NACHHALTIG bestaetigte rote Bruchpunkte (20-Tage-Regel).
+  (resultsByTier.d2_i || []).forEach(({ ind, result }) => {
+    if (result && evaluateSustained(ind, result).s === 'red') breakI++;
+  });
+  (resultsByTier.d2_ii || []).forEach(({ ind, result }) => {
+    if (ind.id === 'btc_nasdaq' && result && evaluateSustained(ind, result).s === 'red') btcNasdaqRed = true;
+  });
+
+  document.getElementById('d2-cntGreen').textContent = green;
+  document.getElementById('d2-cntAmber').textContent = amber;
+  document.getElementById('d2-cntRed').textContent = red;
+  document.getElementById('verdictStats-d2').style.display = 'flex';
+
+  const v = document.getElementById('verdict-d2');
+  const val = document.getElementById('verdictValue-d2');
+  const det = document.getElementById('verdictDetail-d2');
+  v.className = 'verdict';
+
+  if (breakI >= 2) {
+    v.classList.add('red');
+    val.textContent = 'Pfad fracturing';
+    det.textContent = `${breakI} von 3 Anleihemarkt-Bruchpunkten rot. Die geordnete Repression ist gefährdet — der Pfad verläuft chaotischer (Stagflations-Szenario). Defensivere Positionierung im Szenario-Fenster.`;
+  } else if (breakI === 1) {
+    v.classList.add('red');
+    val.textContent = 'Bruchpunkt aktiviert';
+    det.textContent = '1 Anleihemarkt-Bruchpunkt rot. Der Supercycle steht unter Stress — Re-Assessment des 1–3-Jahres-Fensters. Die Grundthese (Dashboard 1) bleibt davon unberührt.';
+  } else if (btcNasdaqRed) {
+    v.classList.add('red');
+    val.textContent = 'BTC/NASDAQ-Abkopplung';
+    det.textContent = 'Bitcoin koppelt sich deutlich nach unten vom NASDAQ ab. Warnsignal für ein Bitcoin-spezifisches Problem im Szenario-Fenster, das über allgemeine Tech-Schwäche hinausgeht — Anlass, die Bitcoin-Position kurzfristig zu prüfen.';
+  } else if (amber >= 2) {
+    v.classList.add('amber');
+    val.textContent = 'Stress baut sich auf';
+    det.textContent = 'Mehrere Indikatoren nähern sich ihren Bruchpunkten. Erhöhte Aufmerksamkeit, noch keine Handlung erforderlich.';
+  } else if (amber === 1) {
+    v.classList.add('amber');
+    val.textContent = 'Beobachten';
+    det.textContent = 'Ein Indikator zeigt Stress. Positionen halten, beobachten.';
+  } else {
+    v.classList.add('green');
+    val.textContent = 'Im Korridor · Pfad intakt';
+    det.textContent = 'Anleihemarkt-Bruchpunkte im tragbaren Korridor, Bitcoin läuft mit dem NASDAQ. Das Supercycle-Szenario funktioniert wie spezifiziert.';
+  }
+}
+
+/* ------------------------------- TAB SWITCH ------------------------------ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view.id === 'view-' + tab));
+}
+
+/* --------------------------------- LOADER -------------------------------- */
+async function loadAll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  btn.textContent = '↻ Lädt…';
+
+  cache = {};
+  resultsByTier = {};
+
+  ['d1', 'd2'].forEach(d => {
+    document.getElementById('verdictValue-' + d).textContent = '— Lädt —';
+    document.getElementById('verdictDetail-' + d).textContent = 'Indikatoren werden geladen…';
+    document.getElementById('verdictStats-' + d).style.display = 'none';
+    document.getElementById('verdict-' + d).className = 'verdict';
+  });
+
+  // Phase 1 — Roh-Werte vorab in den Cache laden, die von berechneten
+  // Indikatoren (term_premium, btc_gold, btc_nasdaq) gebraucht werden.
+  // So muss kein Tier zweimal gerendert werden.
+  const [dgs10, dgs2, gold, btc, ndx] = await Promise.all([
+    fetchFRED('DGS10'), fetchFRED('DGS2'), fetchGold(),
+    fetchCoinGecko('bitcoin'), fetchFRED('NASDAQCOM')
+  ]);
+  if (dgs10) cache.dgs10 = dgs10;
+  if (dgs2)  cache.dgs2  = dgs2;
+  if (gold)  cache.gold  = gold;
+  if (btc)   cache.btc   = btc;
+  if (ndx)   cache.nasdaq = ndx;
+
+  // Phase 2 — Tiers laden. computeDerived() greift jetzt auf gefuellten Cache zu.
+  await loadTier('d1_b', 'd1-b');     // M2, DFII10, debt_gdp
+  await loadTier('d2_i', 'd2-i');     // DGS10, term_premium(computed), DFII10
+  await loadTier('d2_ang', 'd2-ang'); // T5YIE, DXY, foreign_bid, NASDAQ, SP500
+  await loadTier('d1_a', 'd1-a');     // btc_gold(computed), gold, btc
+  await loadTier('d2_ii', 'd2-ii');   // btc_nasdaq(computed), btc_gold_ctx(computed)
+
+  verdictD1();
+  verdictD2();
+
+  document.getElementById('updated').textContent =
+    new Date().toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' });
+
+  btn.classList.remove('loading');
+  btn.textContent = '↻ Aktualisieren';
+}
+
+loadAll();
+</script>
+
+</body>
+</html>
