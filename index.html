@@ -627,9 +627,12 @@
     #d1a .card-compact { grid-column: auto; }
   }
 
-  /* Layer B (Real Yield): single full-width card for now, room for more later */
+  /* Layer B (Real Yield): three cards across, falls to one column when narrow */
   #d1r {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  @media (max-width: 900px) {
+    #d1r { grid-template-columns: 1fr; }
   }
 
   /* Layer C (Debt & Money): paired rows - M2 left, Debt/GDP right, by bloc */
@@ -1189,6 +1192,54 @@ function calculateVerdict() {
    Nothing above this line is modified. All names prefixed d1 to avoid
    any collision with the Dashboard-2 code. */
 
+/* Static annual series - for figures with no reliable free, browser-accessible
+   live source. Hand-maintained; update once or twice a year. Values are rounded
+   year-end figures from public sources (PBoC / NBS China, Eurostat). */
+const D1_STATIC = {
+  // China M2, year-end, trillions of yuan (PBoC)
+  m2_cn: [
+    { date: '2013-12-31', value: 110.7 },
+    { date: '2014-12-31', value: 122.8 },
+    { date: '2015-12-31', value: 139.2 },
+    { date: '2016-12-31', value: 155.0 },
+    { date: '2017-12-31', value: 167.7 },
+    { date: '2018-12-31', value: 182.7 },
+    { date: '2019-12-31', value: 198.6 },
+    { date: '2020-12-31', value: 218.7 },
+    { date: '2021-12-31', value: 238.3 },
+    { date: '2022-12-31', value: 266.4 },
+    { date: '2023-12-31', value: 292.3 },
+    { date: '2024-12-31', value: 313.5 },
+    { date: '2025-12-31', value: 340.3 }
+  ],
+  // China surveyed urban unemployment rate, annual average, percent (NBS)
+  unemp_cn: [
+    { date: '2018-12-31', value: 4.9 },
+    { date: '2019-12-31', value: 5.2 },
+    { date: '2020-12-31', value: 5.6 },
+    { date: '2021-12-31', value: 5.1 },
+    { date: '2022-12-31', value: 5.6 },
+    { date: '2023-12-31', value: 5.2 },
+    { date: '2024-12-31', value: 5.1 },
+    { date: '2025-12-31', value: 5.2 }
+  ],
+  // Euro area unemployment rate, annual average, percent (Eurostat)
+  unemp_eu: [
+    { date: '2013-12-31', value: 12.0 },
+    { date: '2014-12-31', value: 11.6 },
+    { date: '2015-12-31', value: 10.9 },
+    { date: '2016-12-31', value: 10.0 },
+    { date: '2017-12-31', value: 9.1 },
+    { date: '2018-12-31', value: 8.2 },
+    { date: '2019-12-31', value: 7.6 },
+    { date: '2020-12-31', value: 8.0 },
+    { date: '2021-12-31', value: 7.7 },
+    { date: '2022-12-31', value: 6.8 },
+    { date: '2023-12-31', value: 6.6 },
+    { date: '2024-12-31', value: 6.4 }
+  ]
+};
+
 const D1_INDICATORS = {
   d1a: [
     {
@@ -1232,56 +1283,120 @@ const D1_INDICATORS = {
       d1source: 'fred', series: 'DFII10', unit: '%', decimals: 2,
       obsQ: 'Do real yields stay clearly positive over years without the system tipping?',
       obsCtx: 'Unlike Dashboard 2, it is not the daily value that counts here but the multi-year trend.'
+    },
+    {
+      id: 'dgs10_d1', name: 'Nominal 10-Year Yield', d1tag: 'context', chart: 'series',
+      threshold: 'Context - the headline cost of debt',
+      explainer: 'The nominal 10-year Treasury yield. The headline cost at which the US government refinances long-term debt. Read alongside the real yield: the gap between the two is, in effect, the inflation the market is pricing in.',
+      d1source: 'fred', series: 'DGS10', unit: '%', decimals: 2,
+      obsQ: 'Is the nominal cost of long-term debt drifting structurally higher?',
+      obsCtx: 'Context for the real yield. The multi-year trend matters, not the daily print.'
+    },
+    {
+      id: 't10yie_d1', name: '10-Year Breakeven Inflation', d1tag: 'context', chart: 'series',
+      threshold: 'Context - market inflation expectation',
+      explainer: 'The 10-year breakeven inflation rate - the difference between the nominal and the inflation-protected 10-year yield. It is the inflation the bond market expects on average over the next decade. A durable rise signals the market pricing in sustained debasement.',
+      d1source: 'fred', series: 'T10YIE', unit: '%', decimals: 2,
+      obsQ: 'Is the market pricing in durably higher inflation over the decade?',
+      obsCtx: 'Market-implied, not realized inflation. The multi-year trend is what matters here.'
     }
   ],
   d1b: [
     {
       id: 'm2_d1', name: 'Money Supply M2 (US)', d1tag: 'primary', chart: 'series',
-      threshold: 'Driver of the thesis - still growing?',
-      explainer: 'US money supply M2. The actual driver of the base thesis: as long as no major fiat bloc solves its debt problem, the money supply keeps growing, tending exponentially. A durable contraction would be a warning signal.',
+      threshold: 'Driver - still growing?',
+      explainer: 'US money supply M2 (FRED, monthly, absolute). The driver of the base thesis: as long as no major fiat bloc solves its debt problem, the money supply keeps expanding. Read the trend; a durable contraction would be a warning signal.',
       d1source: 'fred', series: 'M2SL', unit: ' Bn', decimals: 0,
-      obsQ: 'Is the money supply still expanding  -  or is the driver of the thesis durably stalling?',
-      obsCtx: 'The multi-year trend matters. A single monthly move carries no verdict.'
+      obsQ: 'Is US money supply still expanding?',
+      obsCtx: 'Absolute level. The multi-year trend matters, not a single move.'
     },
     {
-      id: 'debt_gdp_us', name: 'Debt / GDP (US)', d1tag: 'primary', chart: 'series',
+      id: 'debt_us', name: 'Govt Debt (US)', d1tag: 'primary', chart: 'series',
       threshold: 'Driver - structurally rising?',
-      explainer: 'US federal public debt as a percent of GDP (FRED, quarterly). The core driver of the base thesis: as long as the ratio rises structurally, the pressure toward monetary expansion persists. A durable, non-cyclical decline would be a warning signal. Note: this ratio is published quarterly, so the change is shown per quarter, not per month.',
-      d1source: 'fred', series: 'GFDEGDQ188S', unit: '%', decimals: 1,
-      obsQ: 'Is US debt/GDP still rising structurally  -  or durably turning down?',
-      obsCtx: 'Published quarterly. The multi-year direction matters, not a single print.'
+      explainer: 'US federal public debt, total (FRED, quarterly, absolute). The core driver: as long as the debt pile keeps growing, the pressure toward monetary expansion persists. Read the trend.',
+      d1source: 'fred', series: 'GFDEBTN', unit: ' M', decimals: 0,
+      obsQ: 'Is US government debt still rising structurally?',
+      obsCtx: 'Absolute level. The multi-year trend matters, not a single print.'
     },
     {
-      id: 'm2_cn', name: 'Broad Money (China, % GDP)', d1tag: 'context', chart: 'annual',
-      threshold: 'World Bank - annual data',
-      explainer: 'China broad money as a percent of GDP (World Bank, annual). China runs one of the highest broad-money-to-GDP ratios among large economies - a core part of the global money-supply picture. World Bank data is annual and lags one to two years.',
-      d1source: 'worldbank', wbCountry: 'CHN', wbIndicator: 'FM.LBL.BMNY.GD.ZS', unit: '%', decimals: 1,
+      id: 'gdp_us', name: 'GDP Growth (US)', d1tag: 'context', chart: 'annual',
+      threshold: 'Real growth, annual %',
+      explainer: 'US real GDP growth (World Bank, annual percent). The real-economy counterweight: is output actually growing, or is only the monetary side expanding?',
+      d1source: 'worldbank', wbCountry: 'USA', wbIndicator: 'NY.GDP.MKTP.KD.ZG', unit: '%', decimals: 1,
+      obsQ: 'Is the US real economy still growing?',
+      obsCtx: 'Annual real growth in percent. The multi-year direction matters.'
+    },
+    {
+      id: 'unemp_us', name: 'Unemployment Rate (US)', d1tag: 'context', chart: 'series',
+      threshold: 'Labor market, %',
+      explainer: 'US unemployment rate (FRED, monthly percent). A read on labor-market health alongside growth and money supply.',
+      d1source: 'fred', series: 'UNRATE', unit: '%', decimals: 1,
+      obsQ: 'Is the US labor market tightening or loosening?',
+      obsCtx: 'Monthly rate. The multi-year trend matters more than a single print.'
+    },
+    {
+      id: 'm2_cn', name: 'Money Supply M2 (China)', d1tag: 'primary', chart: 'series',
+      threshold: 'Static - PBoC year-end',
+      explainer: 'China M2 money supply, year-end, trillions of yuan (People\'s Bank of China). No reliable free live source exists for China M2, so this is a hand-maintained annual series of rounded official year-end figures - update once or twice a year.',
+      d1source: 'static', staticKey: 'm2_cn', unit: ' Tn', decimals: 0,
       obsQ: 'Is China still expanding its money supply at scale?',
-      obsCtx: 'Annual World Bank data with a one to two year lag. The multi-year direction matters.'
+      obsCtx: 'Hand-maintained annual series, PBoC year-end values. Trend, not a precise level.'
     },
     {
-      id: 'debt_gdp_cn', name: 'Central Govt Debt / GDP (China)', d1tag: 'context', chart: 'annual',
-      threshold: 'World Bank - annual data',
-      explainer: 'China central government debt as a percent of GDP (World Bank, annual). Note: this is central-government debt and is not directly comparable to the US total-public-debt figure - read it for the trend within China, not as a level versus the US. World Bank data is annual and lags one to two years.',
-      d1source: 'worldbank', wbCountry: 'CHN', wbIndicator: 'GC.DOD.TOTL.GD.ZS', unit: '%', decimals: 1,
-      obsQ: 'Is China letting its debt ratio rise  -  or holding structural discipline?',
-      obsCtx: 'Annual World Bank data, central-government basis. Trend within the country, not a cross-country level.'
+      id: 'debt_cn', name: 'Govt Gross Debt (China)', d1tag: 'context', chart: 'series',
+      threshold: 'IMF via FRED - annual',
+      explainer: 'China general government gross debt (IMF World Economic Outlook via FRED, annual, absolute). Note: debt definitions for China vary widely by source - this is the IMF general-government measure. Read it for the trend; recent years may be IMF projections.',
+      d1source: 'fred', series: 'GGGDTACNA188N', unit: '', decimals: 0,
+      obsQ: 'Is China letting its debt rise structurally?',
+      obsCtx: 'IMF general-government basis. The multi-year direction matters.'
     },
     {
-      id: 'm2_eu', name: 'Broad Money (Euro Area, % GDP)', d1tag: 'context', chart: 'annual',
-      threshold: 'World Bank - annual data',
-      explainer: 'Euro area broad money as a percent of GDP (World Bank, annual). Shows whether the euro bloc is also expanding its money supply relative to output. World Bank data is annual and lags one to two years - it carries the long-term trend, not a current monthly reading.',
-      d1source: 'worldbank', wbCountry: 'XC', wbIndicator: 'FM.LBL.BMNY.GD.ZS', unit: '%', decimals: 1,
-      obsQ: 'Is the euro area also expanding its money supply  -  or showing relative discipline?',
-      obsCtx: 'Annual World Bank data with a one to two year lag. The multi-year direction matters.'
+      id: 'gdp_cn', name: 'GDP Growth (China)', d1tag: 'context', chart: 'annual',
+      threshold: 'Real growth, annual %',
+      explainer: 'China real GDP growth (World Bank, annual percent). The structural slowdown of Chinese growth is a core part of the global macro picture.',
+      d1source: 'worldbank', wbCountry: 'CHN', wbIndicator: 'NY.GDP.MKTP.KD.ZG', unit: '%', decimals: 1,
+      obsQ: 'Is Chinese real growth holding up  -  or structurally slowing?',
+      obsCtx: 'Annual real growth in percent. The multi-year direction matters.'
     },
     {
-      id: 'debt_gdp_eu', name: 'Central Govt Debt / GDP (Euro Area)', d1tag: 'context', chart: 'annual',
-      threshold: 'World Bank - annual data',
-      explainer: 'Euro area central government debt as a percent of GDP (World Bank, annual). Note: central-government basis, not directly comparable to the US total-public-debt figure - read it for the trend within the bloc. World Bank data is annual and lags one to two years.',
-      d1source: 'worldbank', wbCountry: 'XC', wbIndicator: 'GC.DOD.TOTL.GD.ZS', unit: '%', decimals: 1,
-      obsQ: 'Does the euro area show structural fiscal discipline  -  or a rising debt ratio?',
-      obsCtx: 'Annual World Bank data, central-government basis. Trend within the bloc, not a cross-country level.'
+      id: 'unemp_cn', name: 'Unemployment Rate (China)', d1tag: 'context', chart: 'series',
+      threshold: 'Static - NBS surveyed urban',
+      explainer: 'China surveyed urban unemployment rate, annual average, percent (National Bureau of Statistics). No reliable free live source, so this is a hand-maintained annual series. Note: the official surveyed rate is widely seen as understating true labor-market slack.',
+      d1source: 'static', staticKey: 'unemp_cn', unit: '%', decimals: 1,
+      obsQ: 'Is China\'s labor market loosening?',
+      obsCtx: 'Hand-maintained annual series, NBS surveyed urban rate. Read the trend.'
+    },
+    {
+      id: 'm2_eu', name: 'Money Supply M3 (Euro Area)', d1tag: 'primary', chart: 'series',
+      threshold: 'OECD via FRED - annual',
+      explainer: 'Euro area broad money M3 (OECD via FRED, annual, absolute in euro). The euro bloc\'s money supply - read the trend of the expansion over the years.',
+      d1source: 'fred', series: 'MABMM301EZA657S', unit: '', decimals: 0,
+      obsQ: 'Is the euro area also expanding its money supply?',
+      obsCtx: 'Absolute level in euro. The multi-year trend matters.'
+    },
+    {
+      id: 'debt_eu', name: 'Govt Gross Debt (Euro Area)', d1tag: 'context', chart: 'series',
+      threshold: 'IMF via FRED - annual',
+      explainer: 'Euro area general government gross debt (IMF World Economic Outlook via FRED, annual, absolute). The aggregate debt pile of the euro bloc. Read it for the multi-year trend; recent years may be IMF projections.',
+      d1source: 'fred', series: 'GGGDTAEZA188N', unit: '', decimals: 0,
+      obsQ: 'Is the euro area debt pile still rising?',
+      obsCtx: 'IMF general-government basis. The multi-year direction matters.'
+    },
+    {
+      id: 'gdp_eu', name: 'GDP Growth (Euro Area)', d1tag: 'context', chart: 'annual',
+      threshold: 'Real growth, annual %',
+      explainer: 'Euro area real GDP growth (World Bank, annual percent). The real-economy counterweight for the euro bloc.',
+      d1source: 'worldbank', wbCountry: 'EMU', wbIndicator: 'NY.GDP.MKTP.KD.ZG', unit: '%', decimals: 1,
+      obsQ: 'Is the euro area economy still growing?',
+      obsCtx: 'Annual real growth in percent. The multi-year direction matters.'
+    },
+    {
+      id: 'unemp_eu', name: 'Unemployment Rate (Euro Area)', d1tag: 'context', chart: 'series',
+      threshold: 'Static - Eurostat annual',
+      explainer: 'Euro area unemployment rate, annual average, percent (Eurostat). The FRED euro-area series is not kept current, so this is a hand-maintained annual series of official Eurostat figures.',
+      d1source: 'static', staticKey: 'unemp_eu', unit: '%', decimals: 1,
+      obsQ: 'Is the euro area labor market tightening or loosening?',
+      obsCtx: 'Hand-maintained annual series, Eurostat. Read the multi-year trend.'
     }
   ]
 };
@@ -1581,6 +1696,10 @@ async function d1LoadLayer(layerKey, containerId) {
     let result = null;
     if (ind.d1source === 'fred') result = await d1FetchFREDSeries(ind.series);
     else if (ind.d1source === 'worldbank') result = await d1FetchWorldBank(ind.wbCountry, ind.wbIndicator);
+    else if (ind.d1source === 'static') {
+      const s = D1_STATIC[ind.staticKey];
+      if (s && s.length) result = { value: s[s.length - 1].value, date: s[s.length - 1].date.slice(0, 4), series: s.slice() };
+    }
     else if (ind.d1source === 'coingecko') result = await d1FetchCoinGecko(ind.coin);
     else if (ind.d1source === 'goldapi') result = await d1FetchGold();
     else if (ind.d1source === 'roadmap') result = { value: null, date: null, series: [], roadmap: true };
