@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Macro SuperCycle Dashboard</title>
+<style>
+  :root {
+    --bg: #0c0d10;
+    --bg-elevated: #15171c;
+    --bg-card: #1a1d24;
+    --border: #2a2e38;
+    --border-strong: #3a3f4c;
+    --text: #e8eaed;
+    --text-dim: #9aa0a8;
+    --text-faint: #5f6470;
+    
+    --green: #4ade80;
+    --green-soft: rgba(74, 222, 128, 0.12);
+    --green-border: rgba(74, 222, 128, 0.35);
+    
+    --amber: #fbbf24;
+    --amber-soft: rgba(251, 191, 36, 0.12);
+    --amber-border: rgba(251, 191, 36, 0.35);
+    
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, 0.12);
+    --red-border: rgba(248, 113, 113, 0.35);
+    
+    --neutral: #94a3b8;
+    --accent: #c9a961;
+    
+    --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+  }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px 12px 40px;
+    line-height: 1.5;
+  }
+  
+  .container { max-width: 920px; margin: 0 auto; }
+  
+  header { margin-bottom: 28px; }
+  
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .header-title { flex: 1; min-width: 0; }
+  
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  
+  h1 {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+  
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  
+  .refresh-btn:hover {
+    color: var(--text);
+    border-color: var(--text-faint);
+    background: var(--bg-card);
+  }
+  
+  .refresh-btn.loading {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  
+  .meta-bar {
+    display: flex;
+    gap: 24px;
+    padding: 10px 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  
+  .meta-item { display: flex; gap: 8px; align-items: center; }
+  .meta-label { color: var(--text-faint); }
+  .meta-value { color: var(--text-dim); }
+  
+  .verdict {
+    margin: 24px 0 32px;
+    padding: 28px 24px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  
+  .verdict-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 14px;
+  }
+  
+  .verdict-value {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    line-height: 1.1;
+  }
+  
+  .verdict-detail {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  
+  .verdict-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  
+  .verdict-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .verdict-stat-num {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 500;
+  }
+  
+  .verdict-stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  
+  .verdict.green { border-color: var(--green-border); background: linear-gradient(180deg, var(--green-soft) 0%, var(--bg-elevated) 60%); }
+  .verdict.green .verdict-value { color: var(--green); }
+  
+  .verdict.amber { border-color: var(--amber-border); background: linear-gradient(180deg, var(--amber-soft) 0%, var(--bg-elevated) 60%); }
+  .verdict.amber .verdict-value { color: var(--amber); }
+  
+  .verdict.red { border-color: var(--red-border); background: linear-gradient(180deg, var(--red-soft) 0%, var(--bg-elevated) 60%); }
+  .verdict.red .verdict-value { color: var(--red); }
+  
+  .quote {
+    margin: 0 0 32px;
+    padding: 14px 18px;
+    border-left: 2px solid var(--accent);
+    background: var(--bg-elevated);
+    border-radius: 0 4px 4px 0;
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+    line-height: 1.6;
+  }
+  
+  .section { margin-bottom: 32px; }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .section-title-group { display: flex; align-items: baseline; gap: 10px; }
+  
+  .section-tier {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 1.5px;
+    font-weight: 600;
+  }
+  
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: -0.2px;
+  }
+  
+  .section-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-faint);
+  }
+  
+  .section-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  
+  .indicators {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--neutral);
+    transition: background 0.2s;
+  }
+  
+  .card.green::before { background: var(--green); }
+  .card.amber::before { background: var(--amber); }
+  .card.red::before { background: var(--red); }
+  
+  .card.green { background: linear-gradient(90deg, var(--green-soft) 0%, var(--bg-card) 40%); }
+  .card.amber { background: linear-gradient(90deg, var(--amber-soft) 0%, var(--bg-card) 40%); }
+  .card.red { background: linear-gradient(90deg, var(--red-soft) 0%, var(--bg-card) 40%); }
+  
+  .card-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+  }
+  
+  .card-info { min-width: 0; }
+  
+  .card-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  
+  .card-threshold {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+  
+  .card-status {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+  
+  .card-status .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+    background: var(--neutral);
+  }
+  
+  .card.green .dot { background: var(--green); }
+  .card.amber .dot { background: var(--amber); }
+  .card.red .dot { background: var(--red); }
+  
+  .card-explainer {
+    font-size: 11px;
+    color: var(--text-faint);
+    line-height: 1.5;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-style: italic;
+  }
+  
+  .card-value-block {
+    text-align: right;
+    min-width: 90px;
+  }
+  
+  .card-value {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 3px;
+    letter-spacing: -0.3px;
+  }
+  
+  .card.red .card-value { color: var(--red); }
+  .card.amber .card-value { color: var(--amber); }
+  .card.green .card-value { color: var(--green); }
+  
+  .card-date {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-faint);
+    letter-spacing: 0.5px;
+  }
+  
+  .card.loading .card-value { color: var(--text-faint); }
+  .card.loading .card-status { color: var(--text-faint); font-style: italic; }
+  
+  .card.error {
+    border-color: rgba(248, 113, 113, 0.2);
+  }
+  .card.error .card-value { color: var(--text-faint); font-size: 14px; }
+  .card.error .card-status { color: var(--red); }
+  
+  footer {
+    margin-top: 36px;
+    padding: 18px 20px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--text-faint);
+    line-height: 1.7;
+  }
+  
+  footer h4 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    margin-top: 12px;
+    font-weight: 600;
+  }
+  
+  footer h4:first-child { margin-top: 0; }
+  
+  footer p { color: var(--text-faint); }
+  
+  @media (max-width: 600px) {
+    body { padding: 16px 10px 30px; }
+    h1 { font-size: 22px; }
+    .verdict-value { font-size: 26px; }
+    .section-title { font-size: 15px; }
+    .card-row { grid-template-columns: 1fr auto; }
+    .card-value { font-size: 17px; }
+    .header-top { flex-direction: column; align-items: stretch; }
+    .refresh-btn { align-self: flex-end; }
+  }
+
+  /* ===== ADDITIVE EXTENSION  -  Dashboard switcher + Dashboard 1 =====
+     Nothing above this line is modified. Only new classes added. */
+
+  .switcher {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+  .switcher-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 9px 13px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.18s;
+  }
+  .switcher-tab:hover { background: var(--bg-card); }
+  .switcher-tab.active { background: var(--bg-card); }
+  .switcher-tab .sw-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .switcher-tab.active .sw-label { color: var(--accent); }
+  .switcher-tab .sw-name {
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .switcher-tab.active .sw-name { color: var(--text); }
+  .switcher-tab .sw-sub { font-size: 10px; color: var(--text-faint); margin-top: 1px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .arena-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .arena {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 13px;
+  }
+  .arena-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .arena-name {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+  }
+  .arena.up .arena-name { color: var(--green); }
+  .arena.down .arena-name { color: var(--amber); }
+  .arena-exp { font-family: var(--font-mono); font-size: 9px; color: var(--text-faint); }
+  .arena-txt { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+
+  .card.observe::before { background: var(--accent); }
+  .card.observe .dot { background: var(--accent); }
+
+  .card-tags { display: inline-flex; gap: 5px; margin-left: 7px; vertical-align: middle; }
+  .ctag {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    padding: 2px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+    color: var(--text-faint);
+  }
+  .ctag.key { color: var(--accent); border-color: var(--accent); }
+
+  .card-dir {
+    display: flex;
+    gap: 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    margin-top: 8px;
+    color: var(--text-faint);
+  }
+  .card-dir .dv.up { color: var(--green); }
+  .card-dir .dv.down { color: var(--red); }
+  .card-dir .dv.flat { color: var(--text-dim); }
+
+  .spark { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .spark-cap {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 9px; color: var(--text-faint);
+    margin-bottom: 5px;
+  }
+  .spark svg { display: block; width: 100%; height: 38px; }
+  .spark-fill { opacity: 0.13; stroke: none; }
+  .spark-stroke { fill: none; stroke-width: 1.5; stroke-linejoin: round; }
+  .spark-note { font-size: 10px; color: var(--text-faint); font-style: italic; margin-top: 6px; line-height: 1.5; }
+  .spark-empty { font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); font-style: italic; padding: 6px 0; }
+
+  .observe-block { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .observe-q-label {
+    font-family: var(--font-mono); font-size: 8px; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 4px;
+  }
+  .observe-q { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+  .observe-ctx { font-size: 10px; color: var(--text-faint); font-style: italic; line-height: 1.5; margin-top: 5px; }
+
+  @media (max-width: 600px) {
+    .arena-bar { grid-template-columns: 1fr; }
+    .switcher-tab .sw-name { font-size: 13px; }
+  }
+
+  /* ===== ADDITIVE: Dashboard 2 compact - two-column cards + collapsible explainer ===== */
+
+  /* Two cards side by side, only in Dashboard 2 */
+  #view-d2 .indicators {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  /* Collapsible explainer */
+  .explainer-toggle {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  .explainer-toggle:hover { color: var(--text-dim); }
+  .explainer-toggle .tw-arrow {
+    font-size: 8px;
+    transition: transform 0.18s;
+  }
+  .explainer-toggle.open .tw-arrow { transform: rotate(90deg); }
+  .explainer-body {
+    font-size: 11px;
+    color: var(--text-faint);
+    line-height: 1.5;
+    font-style: italic;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.22s ease, margin-top 0.22s ease;
+  }
+  .explainer-body.open {
+    max-height: 320px;
+    margin-top: 8px;
+  }
+
+  /* On narrow screens fall back to one column */
+  @media (max-width: 640px) {
+    #view-d2 .indicators { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="header-top">
+    <div class="header-title">
+      <div class="eyebrow">Architecture Monitor - v3</div>
+      <h1>Macro SuperCycle Dashboard</h1>
+      <div class="subtitle">Are we on track for the super-cycle?</div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">Refresh</button>
+  </div>
+  <div class="meta-bar">
+    <div class="meta-item"><span class="meta-label">UPDATED</span><span class="meta-value" id="updated"> - </span></div>
+    <div class="meta-item"><span class="meta-label">SOURCES</span><span class="meta-value">FRED - CoinGecko - Gold-API</span></div>
+    <div class="meta-item"><span class="meta-label">REFRESH</span><span class="meta-value">manual</span></div>
+  </div>
+</header>
+
+<!-- ADDITIVE: dashboard switcher -->
+<div class="switcher">
+  <button class="switcher-tab" id="sw-d1" onclick="switchTab('d1')">
+    <div class="sw-label">Dashboard 1 - Observation</div>
+    <div class="sw-name">Base Thesis</div>
+    <div class="sw-sub">Decade horizon - evidence, no verdict</div>
+  </button>
+  <button class="switcher-tab active" id="sw-d2" onclick="switchTab('d2')">
+    <div class="sw-label">Dashboard 2 - Fracture Points</div>
+    <div class="sw-name">Super-Cycle</div>
+    <div class="sw-sub">1-3 years - hard red triggers</div>
+  </button>
+</div>
+
+<!-- ADDITIVE: Dashboard 1 view -->
+<div class="view" id="view-d1">
+
+  <div class="quote">
+    "Fiat erodes, hard money gains in relative terms. A decade-level directional claim is not refuted by a daily reading  -  nor by a threshold. This dashboard deliberately renders no verdict: it lays out the evidence. The interpretation is the investor's own work."
+  </div>
+
+  <div class="verdict" id="verdict-d1">
+    <div class="verdict-label">Observation State - Base Thesis</div>
+    <div class="verdict-value" id="verdictValue-d1"> -  Loading  - </div>
+    <div class="verdict-detail" id="verdictDetail-d1">Fetching indicators...</div>
+    <div class="verdict-stats" id="verdictStats-d1" style="display:none;">
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color: var(--accent)" id="d1cntLoaded">0</span><span class="verdict-stat-label">Values Loaded</span></div>
+      <div class="verdict-stat"><span class="verdict-stat-num" style="color: var(--accent)" id="d1cntDir">0</span><span class="verdict-stat-label">With Direction</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier">LAYER A</span>
+        <span class="section-title">Hard Money  -  The Anchor</span>
+      </div>
+      <span class="section-status" id="d1aStatus"> - </span>
+    </div>
+    <div class="section-desc">Are the hard assets holding? The weightiest test is the state-based BTC/Gold test: does Bitcoin beat gold over the decade  -  even when the macro picture is confirmed?</div>
+    <div class="indicators" id="d1a"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title-group">
+        <span class="section-tier">LAYER B</span>
+        <span class="section-title">Debt Mathematics  -  The Driver</span>
+      </div>
+      <span class="section-status" id="d1bStatus"> - </span>
+    </div>
+    <div class="section-desc">Is the money supply still expanding, are real yields not durably positive, does no major bloc show structural fiscal discipline? Drift here is cause to re-examine the monetary foundation itself.</div>
+    <div class="indicators" id="d1b"></div>
+  </div>
+
+  <footer>
+    <h4>Reading Logic Dashboard 1  -  Observation, Not Verdict</h4>
+    <p>Dashboard 1 deliberately knows neither red nor amber nor green. A decade-level directional claim cannot be pinned to a threshold  -  each indicator shows only <strong style="color:var(--text-dim)">value, direction and context</strong>, no mechanical verdict. Each indicator carries an observation question; answering it remains the investor's work.</p>
+    <h4>BTC/Gold Test  -  State-Based</h4>
+    <p>The weightiest test of the base thesis is only sharp when Condition A holds: macro confirmation is in place (equities and gold rising, money supply growing). Only then does Condition B count: Bitcoin fails to beat gold anyway. Note: the gold data source provides no time series  -  for the BTC/Gold ratio there is only the point value, no sparkline.</p>
+    <h4>Direction &amp; Sparkline</h4>
+    <p>Direction shows the change versus the value roughly 3 and 12 months ago  -  the multi-year trend, not daily noise. Both are fetched fresh from the source on every load; where a source provides no history, this is stated openly.</p>
+  </footer>
+
+</div>
+
+<!-- ADDITIVE: Dashboard 2 view wraps the original five tiers, unchanged -->
+<div class="view active" id="view-d2">
+
+<div class="quote">
+  "Long-end Treasury yields above 5.5%, term premium above 1.5%, or real 10Y yields above 2.75%  -  the architecture fractures regardless of what Warsh does at the Fed."
+</div>
+
+<div class="verdict" id="verdict">
+  <div class="verdict-label">Overall Assessment</div>
+  <div class="verdict-value" id="verdictValue"> -  Loading  - </div>
+  <div class="verdict-detail" id="verdictDetail">Fetching all indicators...</div>
+  <div class="verdict-stats" id="verdictStats" style="display:none;">
+    <div class="verdict-stat"><span class="verdict-stat-num" style="color: var(--green)" id="cntGreen">0</span><span class="verdict-stat-label">On Track</span></div>
+    <div class="verdict-stat"><span class="verdict-stat-num" style="color: var(--amber)" id="cntAmber">0</span><span class="verdict-stat-label">Warning</span></div>
+    <div class="verdict-stat"><span class="verdict-stat-num" style="color: var(--red)" id="cntRed">0</span><span class="verdict-stat-label">Critical</span></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title-group">
+      <span class="section-tier">TIER 1</span>
+      <span class="section-title">Bond Market  -  Binding Constraint</span>
+    </div>
+    <span class="section-status" id="t1status"> - </span>
+  </div>
+  <div class="section-desc">The three explicit fracture points from the thesis. If these break sustained, the architecture fails regardless of Fed policy.</div>
+  <div class="indicators" id="tier1"></div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title-group">
+      <span class="section-tier">TIER 2</span>
+      <span class="section-title">Inflation Expectations</span>
+    </div>
+    <span class="section-status" id="t2status"> - </span>
+  </div>
+  <div class="section-desc">Are market-based inflation expectations anchored? Drift here signals credibility erosion.</div>
+  <div class="indicators" id="tier2"></div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title-group">
+      <span class="section-tier">TIER 3</span>
+      <span class="section-title">Dollar & Foreign Bid</span>
+    </div>
+    <span class="section-status" id="t3status"> - </span>
+  </div>
+  <div class="section-desc">Bessent needs a weaker dollar. Strong dollar appreciation breaks the foreign Treasury demand chain.</div>
+  <div class="indicators" id="tier3"></div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title-group">
+      <span class="section-tier">TIER 4</span>
+      <span class="section-title">Risk Assets  -  Repression Hedges</span>
+    </div>
+    <span class="section-status" id="t4status"> - </span>
+  </div>
+  <div class="section-desc">Gold and Bitcoin price financial repression. If the architecture works, they should compound.</div>
+  <div class="indicators" id="tier4"></div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title-group">
+      <span class="section-tier">TIER 5</span>
+      <span class="section-title">Substrate Validation</span>
+    </div>
+    <span class="section-status" id="t5status"> - </span>
+  </div>
+  <div class="section-desc">Is AI infrastructure compounding? If not, the disinflationary backstop of the Greenspan playbook is missing.</div>
+  <div class="indicators" id="tier5"></div>
+</div>
+
+<footer>
+  <h4>Reading Guide</h4>
+  <p><strong style="color:var(--text-dim)">Tier 1 green + 2+ confirmations green</strong> -> Thesis on track, bull case intact.<br>
+  <strong style="color:var(--text-dim)">1 Tier-1 red</strong> -> Trigger activated, re-assessment needed but no full break yet.<br>
+  <strong style="color:var(--text-dim)">2+ Tier-1 red</strong> -> Architecture fracturing, consider defensive positioning.</p>
+  
+  <h4>Data Sources</h4>
+  <p>FRED (St. Louis Fed): DGS10, DGS2, DFII10, T5YIE, T10YIE, DTWEXBGS, SP500, NASDAQCOM. CoinGecko: BTC. Gold-API: XAU spot. Update frequency: daily EOD (FRED), live (crypto, gold).</p>
+  
+  <h4>Methodology Notes</h4>
+  <p>Term premium not directly available  -  proxy uses 10Y minus 2Y spread (DGS10-DGS2). Real yield uses DFII10 (TIPS) directly. Thresholds derived from the original thesis (Tier 1) and calibrated macro ranges (Tier 2-5).</p>
+</footer>
+
+</div><!-- /view-d2 -->
+
+</div>
+
+<script>
+const FRED_KEY = 'b91bfa6a409fd3c9d1f6b266159aca6c';
+const PROXY = 'https://corsproxy.io/?url=';
+
+const INDICATORS = {
+  tier1: [
+    {
+      id: 'dgs10', name: '10-Year Treasury Yield', 
+      threshold: 'Trigger: > 5.5% sustained',
+      explainer: 'The yield on 10-year US government bonds  -  the global benchmark for long-term borrowing costs. Above 5.5% sustained, the cost of refinancing US debt becomes mathematically unsustainable and the architecture must crack.',
+      source: 'fred', series: 'DGS10', unit: '%', decimals: 2,
+      evaluate: (v) => {
+        if (v > 5.5) return { s: 'red', t: 'Critical  -  architecture trigger activated' };
+        if (v > 5.0) return { s: 'amber', t: 'Warning  -  approaching trigger' };
+        if (v > 4.5) return { s: 'amber', t: 'Elevated  -  stress, but within comfort zone' };
+        return { s: 'green', t: 'Below stress threshold' };
+      }
+    },
+    {
+      id: 'term_premium', name: '10Y-2Y Spread (Term Premium Proxy)',
+      threshold: 'Trigger: > 1.5% sustained',
+      explainer: 'Difference between 10-year and 2-year yields. Approximates the extra compensation investors demand for holding long-duration debt. Above 1.5% sustained means the market is repricing long-end risk  -  a direct signal that the architecture is losing credibility.',
+      source: 'computed', unit: '%', decimals: 2,
+      evaluate: (v) => {
+        if (v > 1.5) return { s: 'red', t: 'Critical  -  term premium expansion' };
+        if (v > 1.0) return { s: 'amber', t: 'Warning  -  curve steepening' };
+        if (v < -0.5) return { s: 'amber', t: 'Inverted  -  recession signal' };
+        return { s: 'green', t: 'Curve within stress threshold' };
+      }
+    },
+    {
+      id: 'dfii10', name: 'Real 10-Year Yield (TIPS)',
+      threshold: 'Trigger: > 2.75% sustained',
+      explainer: 'The 10-year Treasury yield adjusted for inflation expectations, sourced from TIPS (Inflation-Protected Securities). Above 2.75% means real borrowing costs are crushing  -  bad for equities, bad for refinancing, bad for the productivity-investment thesis.',
+      source: 'fred', series: 'DFII10', unit: '%', decimals: 2,
+      evaluate: (v) => {
+        if (v > 2.75) return { s: 'red', t: 'Critical  -  real yields too high' };
+        if (v > 2.25) return { s: 'amber', t: 'Warning  -  real yields rising' };
+        return { s: 'green', t: 'Real yields acceptable' };
+      }
+    }
+  ],
+  tier2: [
+    {
+      id: 't5yie', name: '5-Year Breakeven Inflation',
+      threshold: 'Anchor: 2.0-2.7%',
+      explainer: 'Market-implied inflation expectation for the next 5 years (10Y nominal yield minus 10Y TIPS yield). Above 3% means the market no longer believes the Fed will hit 2%  -  a credibility breakdown. Below 1.8% signals deflation risk.',
+      source: 'fred', series: 'T5YIE', unit: '%', decimals: 2,
+      evaluate: (v) => {
+        if (v > 3.0) return { s: 'red', t: 'Unanchored  -  credibility loss' };
+        if (v > 2.7) return { s: 'amber', t: 'Drift  -  expectations loosening' };
+        if (v < 1.8) return { s: 'amber', t: 'Deflation risk' };
+        return { s: 'green', t: 'Inflation anchor holding' };
+      }
+    },
+    {
+      id: 't10yie', name: '10-Year Breakeven Inflation',
+      threshold: 'Long-term anchor: 2.0-2.5%',
+      explainer: 'The 10-year version of inflation expectations. More important for long-term credibility than the 5-year. If this drifts above 2.5%, the market has effectively repriced the Fed\'s long-run target  -  the credibility subsidy is gone.',
+      source: 'fred', series: 'T10YIE', unit: '%', decimals: 2,
+      evaluate: (v) => {
+        if (v > 2.8) return { s: 'red', t: 'Long-run expectations unanchoring' };
+        if (v > 2.5) return { s: 'amber', t: 'Mild loosening' };
+        if (v < 1.8) return { s: 'amber', t: 'Lower than desirable' };
+        return { s: 'green', t: 'Long-run anchor stable' };
+      }
+    }
+  ],
+  tier3: [
+    {
+      id: 'dxy', name: 'US Dollar Index (Broad)',
+      threshold: 'Architecture needs: trending lower',
+      explainer: 'The trade-weighted dollar index against major currencies. A strong dollar makes Treasury holdings unattractive for foreign buyers (FX losses outweigh yield). The architecture needs a managed dollar weakening to clear the foreign duration bid.',
+      source: 'fred', series: 'DTWEXBGS', unit: '', decimals: 2,
+      evaluate: (v) => {
+        if (v < 115) return { s: 'green', t: 'Dollar weak  -  foreign bid attractive' };
+        if (v < 125) return { s: 'green', t: 'Dollar in acceptable corridor' };
+        if (v < 135) return { s: 'amber', t: 'Dollar strength complicates architecture' };
+        return { s: 'red', t: 'Dollar too strong  -  foreign bid breaks' };
+      }
+    }
+  ],
+  tier4: [
+    {
+      id: 'gold', name: 'Gold Spot Price',
+      threshold: 'Repression hedge: trending higher',
+      explainer: 'Spot gold in USD per ounce. Gold is the classic financial repression hedge  -  it prices negative real yields and currency debasement. A sustained bull trend confirms the market is positioning for the repression scenario.',
+      source: 'goldapi', unit: '$', decimals: 0,
+      evaluate: (v) => {
+        if (v > 4500) return { s: 'green', t: 'Strong  -  gold prices repression hard' };
+        if (v > 3500) return { s: 'green', t: 'Bull trend confirmed' };
+        if (v > 2800) return { s: 'amber', t: 'Consolidating' };
+        return { s: 'red', t: 'Bearish  -  thesis weakened' };
+      }
+    },
+    {
+      id: 'btc', name: 'Bitcoin',
+      threshold: 'Monetary hedge confirmation',
+      explainer: 'Bitcoin as a monetary hedge against fiat debasement and sovereign debt monetization. Independent of Fed policy and increasingly held by institutional allocators as a long-duration repression hedge.',
+      source: 'coingecko', coin: 'bitcoin', unit: '$', decimals: 0,
+      evaluate: (v) => {
+        if (v > 120000) return { s: 'green', t: 'Strong  -  BTC confirms thesis' };
+        if (v > 80000) return { s: 'green', t: 'Bull cycle intact' };
+        if (v > 50000) return { s: 'amber', t: 'Consolidating' };
+        return { s: 'red', t: 'Bear phase  -  thesis weakened' };
+      }
+    }
+  ],
+  tier5: [
+    {
+      id: 'sp500', name: 'S&P 500',
+      threshold: 'Broad market  -  must compound',
+      explainer: 'The S&P 500 as the broad-market proxy for risk asset performance. For the productivity-led architecture to hold, equities must compound. A sustained bear market would signal the substrate transition is failing.',
+      source: 'fred', series: 'SP500', unit: '', decimals: 0,
+      evaluate: (v) => {
+        if (v > 6500) return { s: 'green', t: 'Strong  -  substrate trade intact' };
+        if (v > 5500) return { s: 'green', t: 'Bull market stable' };
+        if (v > 4500) return { s: 'amber', t: 'Correction phase' };
+        return { s: 'red', t: 'Bear market  -  substrate story broken' };
+      }
+    },
+    {
+      id: 'nasdaq', name: 'NASDAQ Composite (Tech/AI Proxy)',
+      threshold: 'AI-Capex compounding signal',
+      explainer: 'Tech-heavy index dominated by hyperscalers, semiconductor names, and AI infrastructure plays. The thesis explicitly bets on AI as the IT-cycle equivalent of the late 1990s. NASDAQ performance is the most direct read on whether that bet is paying off.',
+      source: 'fred', series: 'NASDAQCOM', unit: '', decimals: 0,
+      evaluate: (v) => {
+        if (v > 22000) return { s: 'green', t: 'AI trade compounding strongly' };
+        if (v > 18000) return { s: 'green', t: 'Tech sector solid' };
+        if (v > 14000) return { s: 'amber', t: 'Momentum weakening' };
+        return { s: 'red', t: 'AI/Tech story breaking' };
+      }
+    }
+  ]
+};
+
+let cache = {};
+let allResults = [];
+
+async function fetchFRED(seriesId) {
+  const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_KEY}&file_type=json&sort_order=desc&limit=10`;
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(fredUrl));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data.observations || data.observations.length === 0) throw new Error('No observations');
+    for (const obs of data.observations) {
+      if (obs.value !== '.') {
+        return { value: parseFloat(obs.value), date: obs.date };
+      }
+    }
+    throw new Error('All values missing');
+  } catch (e) {
+    console.error(`FRED ${seriesId} failed:`, e);
+    return null;
+  }
+}
+
+async function fetchCoinGecko(coin) {
+  try {
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd&include_last_updated_at=true`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const v = data[coin]?.usd;
+    const t = data[coin]?.last_updated_at;
+    if (v === undefined) throw new Error('No price');
+    return { 
+      value: v, 
+      date: t ? new Date(t * 1000).toISOString().split('T')[0] : 'today' 
+    };
+  } catch (e) {
+    console.error(`CoinGecko ${coin} failed:`, e);
+    return null;
+  }
+}
+
+async function fetchGold() {
+  try {
+    const res = await fetch('https://api.gold-api.com/price/XAU');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.price === undefined) throw new Error('No price field');
+    return {
+      value: data.price,
+      date: data.updatedAt ? data.updatedAt.split('T')[0] : new Date().toISOString().split('T')[0]
+    };
+  } catch (e) {
+    console.error('Gold API failed:', e);
+    return null;
+  }
+}
+
+function formatValue(value, ind) {
+  if (value === null || value === undefined) return ' - ';
+  if (ind.unit === '$') {
+    return '$' + value.toLocaleString('en-US', { 
+      maximumFractionDigits: ind.decimals, 
+      minimumFractionDigits: ind.decimals 
+    });
+  }
+  return value.toFixed(ind.decimals) + (ind.unit || '');
+}
+
+function renderCard(ind, result) {
+  const isLoading = result === undefined;
+  const isError = result === null;
+  const value = result?.value;
+  const date = result?.date;
+  
+  let statusClass = 'loading';
+  let statusText = 'Loading...';
+  let valueText = ' - ';
+  
+  if (isError) {
+    statusClass = 'error';
+    statusText = '<span class="dot"></span>Data unavailable';
+    valueText = 'error';
+  } else if (!isLoading && value !== undefined) {
+    const ev = ind.evaluate(value);
+    statusClass = ev.s;
+    statusText = `<span class="dot"></span>${ev.t}`;
+    valueText = formatValue(value, ind);
+  }
+  
+  return `
+    <div class="card ${statusClass}" data-status="${statusClass}">
+      <div class="card-row">
+        <div class="card-info">
+          <div class="card-name">${ind.name}</div>
+          <div class="card-threshold">${ind.threshold}</div>
+          <div class="card-status">${statusText}</div>
+        </div>
+        <div class="card-value-block">
+          <div class="card-value">${valueText}</div>
+          ${date ? `<div class="card-date">${date}</div>` : ''}
+        </div>
+      </div>
+      <div class="explainer-toggle" onclick="toggleExplainer(this)">
+        <span class="tw-arrow">&#9654;</span><span>Why this threshold</span>
+      </div>
+      <div class="explainer-body">${ind.explainer}</div>
+    </div>
+  `;
+}
+
+function renderPlaceholders(tierName, container) {
+  const tier = INDICATORS[tierName];
+  document.getElementById(container).innerHTML = 
+    tier.map(ind => renderCard(ind, undefined)).join('');
+}
+
+async function loadTier(tierName, container) {
+  renderPlaceholders(tierName, container);
+  const tier = INDICATORS[tierName];
+  
+  const results = await Promise.all(tier.map(async (ind) => {
+    let result = null;
+    if (ind.source === 'fred') {
+      result = await fetchFRED(ind.series);
+    } else if (ind.source === 'coingecko') {
+      result = await fetchCoinGecko(ind.coin);
+    } else if (ind.source === 'goldapi') {
+      result = await fetchGold();
+    } else if (ind.source === 'computed' && ind.id === 'term_premium') {
+      const dgs10 = cache.dgs10 || await fetchFRED('DGS10');
+      const dgs2 = cache.dgs2 || await fetchFRED('DGS2');
+      cache.dgs10 = dgs10; cache.dgs2 = dgs2;
+      if (dgs10 && dgs2) {
+        result = { value: dgs10.value - dgs2.value, date: dgs10.date };
+      }
+    }
+    
+    if (result) cache[ind.id] = result;
+    return { ind, result };
+  }));
+  
+  document.getElementById(container).innerHTML = 
+    results.map(({ ind, result }) => renderCard(ind, result)).join('');
+  
+  const counts = { green: 0, amber: 0, red: 0, error: 0 };
+  results.forEach(({ result, ind }) => {
+    if (!result) counts.error++;
+    else {
+      const ev = ind.evaluate(result.value);
+      counts[ev.s]++;
+    }
+  });
+  
+  const sectionStatusEl = document.getElementById(tierName.replace('tier','t') + 'status');
+  if (sectionStatusEl) {
+    if (counts.red > 0) sectionStatusEl.innerHTML = `<span style="color:var(--red)">* ${counts.red} CRITICAL</span>`;
+    else if (counts.amber > 0) sectionStatusEl.innerHTML = `<span style="color:var(--amber)">* ${counts.amber} WARNING</span>`;
+    else if (counts.green > 0) sectionStatusEl.innerHTML = `<span style="color:var(--green)">* ON TRACK</span>`;
+    else sectionStatusEl.innerHTML = `<span style="color:var(--text-faint)">* NO DATA</span>`;
+  }
+  
+  return results;
+}
+
+function calculateVerdict() {
+  let t1Red = 0, t1Amber = 0, t1Green = 0;
+  let confirmGreen = 0, confirmRed = 0;
+  let totalRed = 0, totalAmber = 0, totalGreen = 0;
+  
+  allResults.forEach(({ ind, result }) => {
+    if (!result) return;
+    const ev = ind.evaluate(result.value);
+    
+    if (ev.s === 'red') totalRed++;
+    if (ev.s === 'amber') totalAmber++;
+    if (ev.s === 'green') totalGreen++;
+    
+    const isTier1 = ['dgs10','term_premium','dfii10'].includes(ind.id);
+    if (isTier1) {
+      if (ev.s === 'red') t1Red++;
+      else if (ev.s === 'amber') t1Amber++;
+      else if (ev.s === 'green') t1Green++;
+    } else {
+      if (ev.s === 'green') confirmGreen++;
+      if (ev.s === 'red') confirmRed++;
+    }
+  });
+  
+  document.getElementById('cntGreen').textContent = totalGreen;
+  document.getElementById('cntAmber').textContent = totalAmber;
+  document.getElementById('cntRed').textContent = totalRed;
+  document.getElementById('verdictStats').style.display = 'flex';
+  
+  const verdict = document.getElementById('verdict');
+  const value = document.getElementById('verdictValue');
+  const detail = document.getElementById('verdictDetail');
+  
+  verdict.className = 'verdict';
+  
+  if (t1Red >= 2) {
+    verdict.classList.add('red');
+    value.textContent = 'Architecture Fracturing';
+    detail.textContent = `${t1Red} of 3 Tier-1 triggers activated. Thesis in acute danger  -  consider defensive positioning.`;
+  } else if (t1Red === 1) {
+    verdict.classList.add('red');
+    value.textContent = 'Trigger Activated';
+    detail.textContent = `1 Tier-1 trigger activated. Re-assessment needed, no full break yet  -  watch for second trigger.`;
+  } else if (t1Amber >= 2) {
+    verdict.classList.add('amber');
+    value.textContent = 'Stress Building';
+    detail.textContent = `Multiple Tier-1 indicators approaching triggers. Heightened attention, no action required.`;
+  } else if (t1Amber === 1) {
+    verdict.classList.add('amber');
+    value.textContent = 'Caution';
+    detail.textContent = `One Tier-1 indicator showing warning. Hold positions, monitor.`;
+  } else if (t1Green >= 2 && confirmGreen >= 3) {
+    verdict.classList.add('green');
+    value.textContent = 'On Track - Bull Case';
+    detail.textContent = `Tier 1 below stress thresholds. Confirmation signals active. Architecture functioning as specified.`;
+  } else if (t1Green >= 2) {
+    verdict.classList.add('green');
+    value.textContent = 'On Track';
+    detail.textContent = `Tier 1 below stress thresholds. Confirmation signals mixed but no break.`;
+  } else {
+    verdict.classList.add('amber');
+    value.textContent = 'Incomplete Data';
+    detail.textContent = `Not all Tier-1 indicators could be loaded. Try refresh.`;
+  }
+}
+
+/* ===== ADDITIVE EXTENSION  -  Dashboard 1 module (self-contained) =====
+   Nothing above this line is modified. All names prefixed d1 to avoid
+   any collision with the Dashboard-2 code. */
+
+const D1_INDICATORS = {
+  d1a: [
+    {
+      id: 'btc_gold', name: 'BTC / Gold Ratio', d1tag: 'primary',
+      threshold: 'Weightiest warning signal - state-based',
+      explainer: 'The sharpest signal of the base thesis. Long term, Bitcoin should outperform gold  -  turning from a risk asset into the superior store of value. The test is only sharp WHEN the macro picture is confirmed (Condition A). A pure BTC drawdown without macro confirmation is not a signal.',
+      d1source: 'ratio', num: 'btc', den: 'gold', unit: ' oz', decimals: 1,
+      obsQ: 'Does Bitcoin beat gold over the decade  -  even with the macro picture confirmed?',
+      obsCtx: 'Orientation: 2021 high approx. 35, 2022 low approx. 10, bull-market range roughly 20-30. No threshold  -  interpretation rests with the investor.'
+    },
+    {
+      id: 'gold_d1', name: 'Gold Spot Price', d1tag: 'context',
+      threshold: 'Established hard-money indicator',
+      explainer: 'Spot gold in USD per ounce. The classic monetary hedge  -  it prices negative real yields and currency debasement. In Dashboard 1 gold carries the long-term reference point for the BTC/Gold test.',
+      d1source: 'goldapi', unit: '$', decimals: 0,
+      obsQ: 'Is gold carrying the long-term uptrend  -  or is the scarce asset decoupling downward?',
+      obsCtx: 'Context for the BTC/Gold reference. The multi-year trend matters, not the daily value.'
+    },
+    {
+      id: 'btc_d1', name: 'Bitcoin Price', d1tag: 'context',
+      threshold: 'Long-term adoption bet',
+      explainer: 'Bitcoin as a monetary savings instrument and long-term adoption bet. In the base thesis it is not the absolute price that counts but the relative move versus gold and money supply  -  the price stands here as context only.',
+      d1source: 'coingecko', coin: 'bitcoin', unit: '$', decimals: 0,
+      obsQ: 'Context only  -  the base thesis interprets Bitcoin relative to gold and money supply, not the absolute price.',
+      obsCtx: 'A drawdown alone is not a signal. Only the relative move (BTC/Gold) carries the warning signal.'
+    }
+  ],
+  d1b: [
+    {
+      id: 'm2_d1', name: 'Money Supply M2 (US)', d1tag: 'primary',
+      threshold: 'Driver of the thesis - still growing?',
+      explainer: 'US money supply M2. The actual driver of the base thesis: as long as no major fiat bloc solves its debt problem, the money supply keeps growing, tending exponentially. A durable contraction would be a warning signal.',
+      d1source: 'fred', series: 'M2SL', unit: ' Bn', decimals: 0,
+      obsQ: 'Is the money supply still expanding  -  or is the driver of the thesis durably stalling?',
+      obsCtx: 'The multi-year trend matters. A single monthly move carries no verdict.'
+    },
+    {
+      id: 'dfii10_d1', name: 'Real 10-Year Yield (Trend)', d1tag: 'context',
+      threshold: 'Warning: durably clearly positive',
+      explainer: 'The real 10-year yield (TIPS). In the base thesis the question is not a daily value but the trend: is the system still eroding the real debt burden? If real yields stay clearly positive over years without the system tipping, that is a warning signal.',
+      d1source: 'fred', series: 'DFII10', unit: '%', decimals: 2,
+      obsQ: 'Do real yields stay clearly positive over years without the system tipping?',
+      obsCtx: 'Unlike Dashboard 2, it is not the daily value that counts here but the multi-year trend.'
+    },
+    {
+      id: 'debt_gdp', name: 'Debt / GDP - Major Blocs', d1tag: 'roadmap',
+      threshold: 'Warning: a bloc shows fiscal discipline',
+      explainer: 'The debt/GDP ratio of major fiat blocs. Warning signal of the base thesis: if at least one major bloc (US, EU, China) cuts its ratio structurally  -  not cyclically  -  that shifts the picture. Data source IMF/FRED not yet connected.',
+      d1source: 'roadmap', unit: '%', decimals: 1,
+      obsQ: 'Does at least one major fiat bloc show structural fiscal discipline?',
+      obsCtx: 'Data source IMF/FRED not yet connected  -  flagged as a roadmap item.'
+    }
+  ]
+};
+
+let d1cache = {};
+
+async function d1FetchFREDSeries(seriesId) {
+  const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_KEY}&file_type=json&sort_order=desc&limit=420`;
+  try {
+    const res = await fetch(PROXY + encodeURIComponent(url));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const series = (data.observations || [])
+      .filter(o => o.value !== '.')
+      .map(o => ({ date: o.date, value: parseFloat(o.value) }))
+      .reverse();
+    if (!series.length) throw new Error('no values');
+    const last = series[series.length - 1];
+    return { value: last.value, date: last.date, series: series };
+  } catch (e) { console.error('D1 FRED ' + seriesId, e); return null; }
+}
+
+async function d1FetchCoinGecko(coin) {
+  try {
+    const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=365&interval=daily`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data.prices || !data.prices.length) throw new Error('no history');
+    const series = data.prices.map(p => ({
+      date: new Date(p[0]).toISOString().split('T')[0], value: p[1]
+    }));
+    const last = series[series.length - 1];
+    return { value: last.value, date: last.date, series: series };
+  } catch (e) {
+    console.error('D1 CoinGecko ' + coin, e);
+    try {
+      const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coin}&vs_currencies=usd`);
+      const d = await r.json();
+      const v = d[coin] && d[coin].usd;
+      if (v === undefined) throw new Error('no price');
+      return { value: v, date: 'today', series: [] };
+    } catch (e2) { return null; }
+  }
+}
+
+async function d1FetchGold() {
+  try {
+    const res = await fetch('https://api.gold-api.com/price/XAU');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data.price === undefined) throw new Error('no price');
+    return {
+      value: data.price,
+      date: data.updatedAt ? data.updatedAt.split('T')[0] : new Date().toISOString().split('T')[0],
+      series: []
+    };
+  } catch (e) { console.error('D1 Gold', e); return null; }
+}
+
+function d1JoinRatio(sA, sB) {
+  if (!sA || !sB || !sA.length || !sB.length) return [];
+  const mapB = {};
+  sB.forEach(p => { mapB[p.date] = p.value; });
+  const out = [];
+  sA.forEach(p => {
+    if (mapB[p.date] !== undefined && mapB[p.date] > 0) {
+      out.push({ date: p.date, value: p.value / mapB[p.date] });
+    }
+  });
+  return out;
+}
+
+function d1Sparkline(series, note) {
+  if (!series || series.length < 2) {
+    return '<div class="spark"><div class="spark-empty">o no time series available  -  data source without history</div></div>';
+  }
+  const pts = series.slice(-180);
+  const W = 300, H = 38, pad = 3;
+  let lo = pts[0].value, hi = pts[0].value;
+  pts.forEach(p => { if (p.value < lo) lo = p.value; if (p.value > hi) hi = p.value; });
+  const span = (hi - lo) || 1;
+  const x = i => pad + (i / (pts.length - 1)) * (W - 2 * pad);
+  const y = v => H - pad - ((v - lo) / span) * (H - 2 * pad);
+  const line = pts.map((p, i) => x(i).toFixed(1) + ',' + y(p.value).toFixed(1)).join(' ');
+  const area = pad + ',' + (H - pad) + ' ' + line + ' ' + (W - pad) + ',' + (H - pad);
+  const first = pts[0], last = pts[pts.length - 1];
+  return '<div class="spark">' +
+    '<div class="spark-cap"><span>Trend - ' + pts.length + ' points</span><span>' + first.date + ' -> ' + last.date + '</span></div>' +
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+    '<polygon class="spark-fill" points="' + area + '" fill="var(--accent)"/>' +
+    '<polyline class="spark-stroke" points="' + line + '" stroke="var(--accent)"/>' +
+    '</svg>' +
+    (note ? '<div class="spark-note">' + note + '</div>' : '') +
+    '</div>';
+}
+
+function d1Direction(series) {
+  if (!series || series.length < 2) {
+    return '<div class="card-dir"><span>no history</span></div>';
+  }
+  const last = series[series.length - 1].value;
+  const back = n => series.length > n ? series[series.length - 1 - n].value : null;
+  const mk = (past, label) => {
+    if (past == null || past === 0) return '<span>' + label + '  - </span>';
+    const pct = ((last - past) / Math.abs(past)) * 100;
+    const up = pct > 0.05, down = pct < -0.05;
+    const cls = up ? 'up' : (down ? 'down' : 'flat');
+    const ar = up ? '^' : (down ? 'v' : '->');
+    return '<span>' + label + ' <span class="dv ' + cls + '">' + ar + ' ' + (pct > 0 ? '+' : '') + pct.toFixed(1) + '%</span></span>';
+  };
+  return '<div class="card-dir">' + mk(back(63), '3M') + mk(back(252), '12M') + '</div>';
+}
+
+const D1_TAG_LABEL = { primary: 'Primary', context: 'Context', roadmap: 'Roadmap' };
+
+function d1RenderCard(ind, result) {
+  const isLoading = result === undefined;
+  const isRoadmap = ind.d1source === 'roadmap';
+  const isError = result === null && !isRoadmap;
+
+  let valueText = ' - ', dirBlock = '', sparkBlock = '';
+  if (isRoadmap) {
+    valueText = 'n/a';
+  } else if (isError) {
+    valueText = 'error';
+  } else if (!isLoading && result && result.value != null) {
+    valueText = formatValue(result.value, ind);
+    dirBlock = d1Direction(result.series);
+    sparkBlock = d1Sparkline(result.series, 'Multi-year trend for context  -  basis for your own interpretation, not a mechanical verdict.');
+  }
+
+  const cls = isLoading ? 'card observe loading' : (isError ? 'card observe error' : 'card observe');
+  const tags = '<span class="ctag ' + (ind.d1tag === 'primary' ? 'key' : '') + '">' + D1_TAG_LABEL[ind.d1tag] + '</span><span class="ctag">Observation</span>';
+  const obs = ind.obsQ
+    ? '<div class="observe-block"><div class="observe-q-label">Observation Question</div><div class="observe-q">' + ind.obsQ + '</div>' +
+      (ind.obsCtx ? '<div class="observe-ctx">' + ind.obsCtx + '</div>' : '') + '</div>'
+    : '';
+
+  return '' +
+    '<div class="' + cls + '">' +
+      '<div class="card-row">' +
+        '<div class="card-info">' +
+          '<div class="card-name">' + ind.name + '<span class="card-tags">' + tags + '</span></div>' +
+          '<div class="card-threshold">' + ind.threshold + '</div>' +
+        '</div>' +
+        '<div class="card-value-block">' +
+          '<div class="card-value">' + valueText + '</div>' +
+          (result && result.date ? '<div class="card-date">' + result.date + '</div>' : '') +
+        '</div>' +
+      '</div>' +
+      dirBlock +
+      sparkBlock +
+      '<div class="card-explainer">' + ind.explainer + '</div>' +
+      obs +
+    '</div>';
+}
+
+async function d1LoadLayer(layerKey, containerId) {
+  const layer = D1_INDICATORS[layerKey];
+  document.getElementById(containerId).innerHTML =
+    layer.map(ind => d1RenderCard(ind, undefined)).join('');
+
+  const results = [];
+  for (const ind of layer) {
+    let result = null;
+    if (ind.d1source === 'fred') result = await d1FetchFREDSeries(ind.series);
+    else if (ind.d1source === 'coingecko') result = await d1FetchCoinGecko(ind.coin);
+    else if (ind.d1source === 'goldapi') result = await d1FetchGold();
+    else if (ind.d1source === 'roadmap') result = { value: null, date: null, series: [], roadmap: true };
+    else if (ind.d1source === 'ratio') {
+      const a = d1cache[ind.num], b = d1cache[ind.den];
+      if (a && b && b.value > 0) {
+        result = { value: a.value / b.value, date: a.date, series: d1JoinRatio(a.series, b.series) };
+      }
+    }
+    if (result && !result.roadmap) d1cache[ind.id] = result;
+    results.push({ ind: ind, result: result });
+  }
+
+  document.getElementById(containerId).innerHTML =
+    results.map(r => d1RenderCard(r.ind, r.result)).join('');
+
+  let loaded = 0, total = 0;
+  results.forEach(r => {
+    total++;
+    if (r.ind.d1source !== 'roadmap' && r.result && r.result.value != null) loaded++;
+  });
+  const statusEl = document.getElementById(layerKey + 'Status');
+  if (statusEl) statusEl.innerHTML = '<span style="color:var(--accent)">o OBSERVATION - ' + loaded + '/' + total + ' values</span>';
+
+  return results;
+}
+
+async function d1LoadAll() {
+  d1cache = {};
+  const gold = await d1FetchGold();
+  const btc = await d1FetchCoinGecko('bitcoin');
+  if (gold) d1cache.gold = gold;
+  if (btc) d1cache.btc = btc;
+
+  const rb = await d1LoadLayer('d1b', 'd1b');
+  const ra = await d1LoadLayer('d1a', 'd1a');
+  const all = ra.concat(rb);
+
+  let loaded = 0, withDir = 0, total = 0;
+  all.forEach(r => {
+    total++;
+    if (r.ind.d1source === 'roadmap') return;
+    if (r.result && r.result.value != null) {
+      loaded++;
+      if (r.result.series && r.result.series.length > 1) withDir++;
+    }
+  });
+
+  document.getElementById('d1cntLoaded').textContent = loaded;
+  document.getElementById('d1cntDir').textContent = withDir;
+  document.getElementById('verdictStats-d1').style.display = 'flex';
+  document.getElementById('verdictValue-d1').textContent = 'Observation State';
+  document.getElementById('verdictDetail-d1').textContent =
+    loaded + ' of ' + total + ' indicators loaded with a current value. Dashboard 1 deliberately renders no verdict  -  it lays out the evidence for the base thesis to be interpreted against. A real break belongs in the head, not in a traffic light.';
+}
+
+function toggleExplainer(el) {
+  el.classList.toggle('open');
+  const body = el.nextElementSibling;
+  if (body) body.classList.toggle('open');
+}
+
+function switchTab(tab) {
+  document.getElementById('sw-d1').classList.toggle('active', tab === 'd1');
+  document.getElementById('sw-d2').classList.toggle('active', tab === 'd2');
+  document.getElementById('view-d1').classList.toggle('active', tab === 'd1');
+  document.getElementById('view-d2').classList.toggle('active', tab === 'd2');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function loadAll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  btn.textContent = 'Loading...';
+  
+  cache = {};
+  allResults = [];
+  
+  document.getElementById('verdictValue').textContent = ' -  Loading  - ';
+  document.getElementById('verdictDetail').textContent = 'Fetching all indicators...';
+  document.getElementById('verdictStats').style.display = 'none';
+  document.getElementById('verdict').className = 'verdict';
+  
+  const tiers = ['tier1', 'tier2', 'tier3', 'tier4', 'tier5'];
+  for (const t of tiers) {
+    const results = await loadTier(t, t);
+    allResults = allResults.concat(results);
+  }
+  
+  calculateVerdict();
+  
+  await d1LoadAll();
+  
+  document.getElementById('updated').textContent = 
+    new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  
+  btn.classList.remove('loading');
+  btn.textContent = 'Refresh';
+}
+
+loadAll();
+</script>
+
+</body>
+</html>
